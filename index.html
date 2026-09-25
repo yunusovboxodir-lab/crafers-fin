@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#17201C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crafers Fin">
+<title>Crafers Fin — учёт для дистрибуции</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F4F2EC; --surface:#FFFFFF; --soft:#FAF9F5; --tint:#EAE6DA; --line:#E3E0D6; --line2:#EFECE3;
+  --ink:#1B1D1A; --muted:#5E625B; --green:#1F5E4A; --green-soft:#E3EFE8; --amber:#D9A441;
+  --amber-soft:#F5EAD6; --amber-ink:#7A4A12; --warn:#8A3B0A; --warn-soft:#F5E1D2; --side:#17201C;
+  --font:'Onest','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--ground);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* ---------- каркас ---------- */
+.app{display:flex;height:100%;height:100dvh}
+.side{width:248px;flex-shrink:0;background:var(--side);color:#fff;display:flex;flex-direction:column;gap:20px;padding:20px 14px;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--amber);color:var(--side);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0}
+.brand b{display:block;font-size:17px}
+.brand small{color:#93A39A;font-size:12px}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.group{color:#7F8F86;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:12px 14px 6px}
+.nav{display:flex;align-items:center;gap:12px;width:100%;height:42px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:#B9C4BE;font-size:14px;font-weight:500;text-align:left}
+.nav:hover{background:#26332D;color:#fff}
+.nav.on{background:#2E4038;color:#fff;font-weight:600}
+.nav svg,.tab svg{flex-shrink:0}
+.pill{margin-left:auto;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--amber);color:var(--side);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.close{margin-top:auto;background:#212C27;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#B9C4BE}
+.close b{color:#fff;font-size:14px}
+.bar{height:6px;background:#33413A;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:64%;background:var(--amber)}
+
+.body{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{min-height:64px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--line)}
+.crumbs{font-size:14px;color:var(--muted)}
+.crumbs b{color:var(--ink)}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;height:40px;width:250px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.search input{border:0;outline:0;background:transparent;font-size:14px;flex:1;min-width:0}
+.chipbtn{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
+main{flex:1;overflow:auto;padding:28px;-webkit-overflow-scrolling:touch}
+.page{display:flex;flex-direction:column;gap:18px;max-width:1280px}
+
+/* ---------- элементы ---------- */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;font-weight:700;line-height:1.2}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{height:44px;padding:0 18px;border:0;border-radius:10px;background:var(--green);color:#fff;font-size:14px;font-weight:600}
+.btn:hover{filter:brightness(.92)}
+.btn.sm{height:34px;padding:0 12px;border-radius:8px;font-size:13px}
+.btn.amber{background:var(--amber);color:var(--side)}
+.ghost{height:44px;padding:0 16px;border:1px solid #D6D2C4;border-radius:10px;background:var(--surface);font-size:14px}
+.ghost:hover{background:#ECE8DD}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.pad{padding:20px 22px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi{padding:20px;display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.kpi:hover{background:var(--soft)}
+.kpi span:first-child{color:var(--muted);font-size:13px}
+.kpi .v{font-size:26px;font-weight:600;letter-spacing:-.5px}
+.kpi small{font-size:13px}
+.kpi.dark{background:var(--green);color:#fff;border-color:var(--green)}
+.kpi.dark span:first-child{color:#D8E6DE}
+.seg{display:flex;background:var(--tint);border-radius:10px;padding:4px;gap:4px}
+.seg button{height:36px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.chip{height:36px;padding:0 14px;border-radius:18px;border:1px solid #D6D2C4;background:#fff;font-size:13px;white-space:nowrap;flex-shrink:0}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.badge{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--green-soft);color:var(--green)}
+.b-wait{background:var(--amber-soft);color:var(--amber-ink)}
+.b-bad{background:var(--warn-soft);color:var(--warn)}
+.b-none{background:var(--line2);color:var(--muted)}
+
+/* финансовые таблицы (P&L, ДДС) */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+table{border-collapse:collapse;width:100%}
+.fin{min-width:760px;font-size:14px}
+.fin th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:12px 16px;text-align:right;white-space:nowrap}
+.fin th:first-child{text-align:left}
+.fin td{padding:11px 16px;border-top:1px solid var(--line2);text-align:right;white-space:nowrap;background:#fff}
+.fin td:first-child{text-align:left;white-space:normal;min-width:220px}
+.fin th:first-child,.fin td:first-child{position:sticky;left:0;z-index:1}
+.fin tr.indent td:first-child{padding-left:34px}
+.fin tr.subt td{font-weight:600}
+.fin tr.total td{background:#F1EEE5;font-weight:700}
+.fin tr.grand td{background:var(--green);color:#fff;font-weight:700}
+.fin tr.grand td.p{color:#D8E6DE}
+.fin tr.hd td{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:9px 16px}
+.fin tr.link{cursor:pointer}
+.fin tr.link:hover td{background:#F7F5EF}
+.fin tr.link td:first-child::after{content:"  ›";color:var(--green);font-weight:700}
+.fin td.p{color:var(--muted)}
+.fin td.bad{color:var(--warn);font-weight:600}
+.fin td.good{color:var(--green)}
+
+/* списки (превращаются в карточки на телефоне) */
+.list{font-size:14px}
+.list th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:12px 16px;text-align:left;white-space:nowrap}
+.list td{padding:13px 16px;border-top:1px solid var(--line2);vertical-align:middle}
+.list .r{text-align:right}
+.list tr.click{cursor:pointer}
+.list tr.click:hover td{background:#F7F5EF}
+.list .two small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.foot{display:flex;justify-content:flex-end;gap:16px;padding:14px 20px;border-top:1px solid var(--line);background:var(--soft);font-size:14px;border-radius:0 0 14px 14px}
+
+/* сводка */
+.split{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.chart{height:200px;display:flex;align-items:flex-end;gap:14px;padding:0 4px;border-bottom:1px solid var(--line)}
+.chart .col{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:5px;height:190px}
+.chart .col i{display:block;width:min(26px,40%);border-radius:6px 6px 2px 2px}
+.months{display:flex;gap:14px;padding:6px 4px 0}
+.months span{flex:1;text-align:center;font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.meter{height:8px;background:var(--line2);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px;background:var(--green)}
+.task{display:flex;align-items:center;gap:14px;width:100%;padding:14px 20px;border:0;border-top:1px solid var(--line2);background:#fff;text-align:left}
+.task:hover{background:#F7F5EF}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task .t{flex:1;display:flex;flex-direction:column;gap:2px}
+.task .t small{color:var(--muted);font-size:13px}
+.task .go{font-size:13px;color:var(--green);font-weight:600;white-space:nowrap}
+
+.formula{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px}
+.formula span.f{padding:6px 12px;border-radius:8px;background:var(--tint)}
+.formula span.f.res{background:var(--green);color:#fff;font-weight:600}
+
+.form{border:1px solid var(--green)}
+.fgrid{display:grid;grid-template-columns:1fr 1.4fr 180px;gap:14px}
+label.fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+label.fld input{height:44px;padding:0 12px;border:1px solid #D6D2C4;border-radius:10px;font-size:16px;color:var(--ink);background:#fff;width:100%}
+.expwrap{display:flex;gap:16px;align-items:flex-start}
+.expwrap>.card:first-child{flex:1;min-width:0}
+.limits{width:320px;flex-shrink:0}
+
+.drop{border:2px dashed #C9C4B4;border-radius:14px;background:var(--soft);padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.file{display:flex;align-items:center;gap:12px;padding:14px 18px;border-top:1px solid var(--line2)}
+.file:first-child{border-top:0}
+.file.sel{background:var(--ground)}
+.file .pick{display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;text-align:left;padding:0}
+.xls{width:36px;height:36px;border-radius:8px;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.map{display:grid;grid-template-columns:1fr 20px 1fr;gap:8px;align-items:center;font-size:14px}
+.map .a{padding:9px 12px;border-radius:8px;background:var(--ground)}
+.map .b{padding:9px 12px;border-radius:8px;border:1px solid #D6D2C4}
+
+.toast{position:fixed;right:24px;bottom:24px;background:var(--side);color:#fff;padding:14px 18px;border-radius:12px;font-size:14px;display:flex;align-items:center;gap:10px;z-index:50;max-width:calc(100vw - 32px);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+/* нижняя навигация и «Ещё» — только телефон */
+.tabs,.sheet,.scrim{display:none}
+
+@media (max-width: 1100px){
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .split{grid-template-columns:1fr}
+  .expwrap{flex-direction:column}
+  .limits{width:100%}
+  .search{display:none}
+}
+
+@media (max-width: 760px){
+  .side{display:none}
+  .top{padding:0 16px;padding-top:env(safe-area-inset-top,0px);min-height:calc(56px + env(safe-area-inset-top,0px))}
+  .top .chipbtn.org,.top .chipbtn.period{display:none}
+  .crumbs{font-size:17px}
+  .crumbs .path{display:none}
+  main{padding:16px 14px calc(88px + env(safe-area-inset-bottom,0px))}
+  h1{font-size:22px}
+  .head{align-items:flex-start}
+  .actions{width:100%}
+  .actions .btn,.actions .ghost{flex:1}
+  .actions .seg{width:100%}
+  .actions .seg button{flex:1}
+  .grid4{gap:10px}
+  .kpi{padding:14px}
+  .kpi .v{font-size:20px}
+  .fgrid{grid-template-columns:1fr}
+  .pad{padding:16px}
+  .toast{left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .map{font-size:13px}
+
+  /* списки как карточки */
+  .list thead{display:none}
+  .list,.list tbody,.list tr,.list td{display:block;width:100%}
+  .list tr{padding:12px 16px;border-top:1px solid var(--line2)}
+  .list tr:first-child{border-top:0}
+  .list td{border:0;padding:3px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:right}
+  .list td::before{content:attr(data-label);color:var(--muted);font-size:13px;text-align:left}
+  .list td.main{display:block;text-align:left;padding-bottom:6px;font-size:15px}
+  .list td.main::before{display:none}
+  .list td.hide-m{display:none}
+
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:500;padding:6px 0;min-height:52px;position:relative}
+  .tab.on{color:var(--green);font-weight:700}
+  .tab .pill{position:absolute;top:2px;left:calc(50% + 6px);margin:0;min-width:18px;height:18px;font-size:11px}
+  .scrim{position:fixed;inset:0;background:rgba(23,32,28,.4);z-index:45}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:46;background:#fff;border-radius:18px 18px 0 0;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:2px}
+  .sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 10px}
+  .sheet .nav{color:var(--ink);height:52px;font-size:16px}
+  .sheet .nav.on{background:var(--green-soft);color:var(--green)}
+  .more-open .scrim{display:block}
+  .more-open .sheet{display:flex}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">CF</div><div><b>Crafers Fin</b><small>Учёт для дистрибуции</small></div></div>
+    <nav id="sidenav" aria-label="Разделы"></nav>
+    <div class="close"><span>Закрытие месяца</span><b>Сентябрь 2026</b><div class="bar"><i></i></div><span>7 из 11 шагов выполнено</span></div>
+  </aside>
+  <div class="body">
+    <header class="top">
+      <div class="crumbs"><span class="path">Crafers Fin / </span><b id="crumb">Сводка</b></div>
+      <div class="spacer"></div>
+      <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E625B" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input aria-label="Поиск" placeholder="Поиск статей, сотрудников"></label>
+      <button class="chipbtn period" type="button">Сентябрь 2026</button>
+      <button class="chipbtn org" type="button">Crafers · все филиалы</button>
+      <div class="avatar">БХ</div>
+    </header>
+    <main id="main"></main>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Разделы"></nav>
+  <div class="scrim" data-act="more-close"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-label="Другие разделы"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= данные и состояние ================= */
+var S = {
+  section:'desk', plView:'month', ddsView:'fact', expTab:'travel', dept:'all',
+  doc:null, posted:{}, showForm:false, form:{who:'',desc:'',sum:'',cat:'ГСМ'},
+  files:{}, selFile:0,
+  expenses:[
+    {id:1,type:'travel',date:'25.09',who:'Юсупов Д.',role:'ТП, Ташкент',desc:'ГСМ, маршрут Чиланзар – Юнусабад',cat:'ГСМ',sum:420000,pending:true},
+    {id:2,type:'travel',date:'24.09',who:'Эргашев С.',role:'ТП, Фергана',desc:'Командировка в Коканд, 2 дня',cat:'Суточные',sum:600000,pending:true},
+    {id:3,type:'travel',date:'24.09',who:'Абдуллаев Ш.',role:'водитель',desc:'Ремонт шины, машина №3',cat:'Ремонт авто',sum:350000,pending:false},
+    {id:4,type:'travel',date:'23.09',who:'Норматов Б.',role:'ТП, Самарканд',desc:'Гостиница, Бухара, 1 ночь',cat:'Проживание',sum:480000,pending:true},
+    {id:5,type:'travel',date:'22.09',who:'Рахимова М.',role:'ТП, Ташкент',desc:'ГСМ, маршрут Сергели',cat:'ГСМ',sum:380000,pending:false},
+    {id:6,type:'travel',date:'21.09',who:'Абдуллаев Ш.',role:'водитель',desc:'ГСМ, доставка в Ангрен',cat:'ГСМ',sum:910000,pending:false},
+    {id:7,type:'other',date:'25.09',who:'Мобильный оператор',role:'',desc:'Связь, 18 корпоративных номеров',cat:'Связь',sum:1620000,pending:false},
+    {id:8,type:'other',date:'23.09',who:'Банк',role:'',desc:'Комиссия за расчётно-кассовое обслуживание',cat:'Банк',sum:840000,pending:false},
+    {id:9,type:'other',date:'20.09',who:'ИП Ахмедов',role:'',desc:'Ремонт стеллажей на складе',cat:'Ремонт склада',sum:4200000,pending:true},
+    {id:10,type:'other',date:'18.09',who:'Канцтовары',role:'',desc:'Бумага, картриджи',cat:'Офис',sum:690000,pending:false}
+  ]
+};
+
+var TITLES = {desk:'Сводка',pl:'P&L',dds:'Движение денег',cost:'Себестоимость',exp:'Расходы',salary:'Зарплата',ship:'Отгрузки',imp:'Импорт из Excel'};
+var ICONS = {
+  desk:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  pl:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  dds:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
+  cost:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  exp:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  salary:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M17 5.5a3 3 0 010 5.5M19 14.8c1.4.8 2.3 2.4 2.6 4.7"/>',
+  ship:'<path d="M2 6h12v10H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
+  imp:'<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M12 17v-6M9 14l3-3 3 3"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+};
+function icon(k,sz){ return '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[k]+'</svg>'; }
+
+function fmt(n){ var r=Math.round(n); var s=Math.abs(r).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F'); return r<0?'−'+s:s; }
+function pct(x){ return (Math.round(x*1000)/10).toString().replace('.',',')+'%'; }
+function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+/* ---------- P&L ---------- */
+function mk(a){ return {rev:a[0],bonus:a[1],cogs:a[2],fot:a[3],log:a[4],travel:a[5],rent:a[6],mkt:a[7],other:a[8],amort:a[9],int:a[10]}; }
+var MONTHS=[mk([3860,116,3010,214,96,38,42,55,31,18,24]),mk([4210,126,3270,221,104,41,42,62,29,18,24]),mk([4020,121,3110,226,101,44,42,58,34,18,22])];
+var REGIONS=[mk([2210,71,1700,118,44,14,26,34,18,11,22]),mk([1090,31,848,62,33,17,9,14,9,4,0]),mk([720,19,562,46,24,13,7,10,7,3,0])];
+function calc(d){ var r=Object.assign({},d); r.net=d.rev-d.bonus; r.gross=r.net-d.cogs; r.opex=d.fot+d.log+d.travel+d.rent+d.mkt+d.other; r.ebitda=r.gross-r.opex; r.pbt=r.ebitda-d.amort-d.int; r.tax=r.pbt*0.15; r.np=r.pbt-r.tax; return r; }
+function sumOf(arr){ var o={}; Object.keys(arr[0]).forEach(function(k){ o[k]=arr.reduce(function(a,x){return a+x[k];},0); }); return o; }
+var SEP=calc(MONTHS[2]), AUG=calc(MONTHS[1]), JUL=calc(MONTHS[0]);
+
+/* ---------- ДДС ---------- */
+var INS=[{l:'От покупателей за товар',w:[910,1040,980,1120],p:4200},{l:'Прочие поступления',w:[12,0,25,0],p:20}];
+var OUTS=[{l:'Оплата поставщикам',w:[780,820,760,850],p:3300},{l:'Зарплата',w:[0,118,0,110],p:230,go:'salary'},{l:'Налоги и взносы',w:[0,0,96,0],p:96},{l:'ГСМ и логистика',w:[24,26,25,27],p:95,go:'exp'},{l:'Дорожные и подотчёт',w:[10,12,11,11],p:38,go:'exp'},{l:'Аренда',w:[42,0,0,0],p:42},{l:'Погашение кредита',w:[0,0,0,60],p:60}];
+var START=1186;
+function tot(x){ return x.w.reduce(function(a,b){return a+b;},0); }
+var W_IN=[0,1,2,3].map(function(i){return INS.reduce(function(a,x){return a+x.w[i];},0);});
+var W_OUT=[0,1,2,3].map(function(i){return OUTS.reduce(function(a,x){return a+x.w[i];},0);});
+var W_START=[START], W_END=[];
+for(var i=0;i<4;i++){ W_END[i]=W_START[i]+W_IN[i]-W_OUT[i]; if(i<3) W_START[i+1]=W_END[i]; }
+var F_IN=W_IN.reduce(function(a,b){return a+b;},0), F_OUT=W_OUT.reduce(function(a,b){return a+b;},0);
+var P_IN=INS.reduce(function(a,x){return a+x.p;},0), P_OUT=OUTS.reduce(function(a,x){return a+x.p;},0);
+var END_F=START+F_IN-F_OUT, END_P=START+P_IN-P_OUT;
+
+/* ---------- прочее ---------- */
+var SKUS=[['Масло подсолнечное, 1 л','Бренд A',18400,21300,620,480,24500],['Сахар-песок, 1 кг','Бренд B',32600,12100,410,190,13800],['Мука высший сорт, 2 кг','Бренд B',21500,15400,690,260,18200],['Рис девзира, 1 кг','Бренд C',9800,26400,520,700,32000],['Макароны, 400 г','Бренд D',27300,6200,180,150,7600],['Чай чёрный, 100 г','Бренд E',14100,11800,150,420,14900]];
+var LIMITS=[['Юсупов Д.',1240000,1500000],['Рахимова М.',980000,1500000],['Эргашев С.',1610000,1500000],['Норматов Б.',1120000,1800000],['Абдуллаев Ш.',2950000,3500000]];
+var EMPS=[['Юсупов Дильшод','Торговый представитель','sales','Ташкент',6000000,108],['Рахимова Малика','Торговый представитель','sales','Ташкент',6000000,94],['Хасанов Ойбек','Торговый представитель','sales','Ташкент',6000000,101],['Эргашев Санжар','Торговый представитель','sales','Фергана',5500000,112],['Норматов Бекзод','Торговый представитель','sales','Самарканд',5500000,81],['Абдуллаев Шерзод','Водитель-экспедитор','drivers','Ташкент',5000000,99],['Мирзаев Жасур','Водитель-экспедитор','drivers','Фергана',5000000,92],['Кодиров Улугбек','Кладовщик','warehouse','Ташкент',4800000,null],['Султанова Нигора','Бухгалтер','office','Ташкент',7000000,null],['Турсунова Зарина','Офис-менеджер','office','Ташкент',5200000,null]];
+var DEPTS=[['all','Все'],['sales','Торговые'],['drivers','Водители'],['warehouse','Склад'],['office','Офис']];
+var SALES=[['ОТ-00128','25.09.2026','ООО «Сомон Савдо»','Ташкент',48600000,false],['ОТ-00127','24.09.2026','ИП Каримов А.','Ташкент',12350000,true],['ОТ-00126','23.09.2026','ООО «Фарғона Дистрибьюшн»','Фергана',96200000,true],['ОТ-00125','22.09.2026','ЧП «Бахор Маркет»','Ташкент',7840000,true],['ОТ-00124','20.09.2026','ООО «Альфа Трейд Групп»','Ташкент',33900000,false],['ОТ-00123','18.09.2026','ООО «Навруз Фуд»','Самарканд',54120000,true]];
+var LINES=[['Масло подсолнечное, 1 л',240,24500,22400],['Сахар-песок, 1 кг',500,13800,12700],['Мука высший сорт, 2 кг',300,18200,16350],['Рис девзира, 1 кг',180,32000,27620]];
+var FILES=[
+  {name:'P&L_2026.xlsx',meta:'12 листов, 1 248 строк',target:'P&L',map:[['Месяц','Период'],['Статья','Статья P&L'],['Филиал','Подразделение'],['Сумма','Сумма, сум'],['Комментарий','Комментарий']]},
+  {name:'ДДС_сентябрь.xlsx',meta:'1 лист, 412 строк',target:'Движение денег',map:[['Дата','Дата операции'],['Приход / Расход','Направление'],['Статья','Статья ДДС'],['Касса / Банк','Счёт'],['Сумма','Сумма, сум']]},
+  {name:'Дорожные_ТП_сентябрь.xlsx',meta:'5 листов, 286 строк',target:'Расходы',map:[['ФИО','Сотрудник'],['Дата','Дата расхода'],['Вид расхода','Статья'],['Маршрут','Описание'],['Сумма','Сумма, сум']]},
+  {name:'ЗП_ведомость_09.xlsx',meta:'1 лист, 48 строк',target:'Зарплата',map:[['ФИО','Сотрудник'],['Должность','Должность'],['Оклад','Оклад'],['% плана','Выполнение плана'],['Бонус','Бонус']]},
+  {name:'Себестоимость_SKU.xlsx',meta:'3 листа, 164 строки',target:'Себестоимость',map:[['Код','Артикул'],['Наименование','SKU'],['Цена прихода','Цена закупки'],['Доставка','Логистика на ед.'],['Ретро','Бонусы на ед.']]}
+];
+
+function pending(){ return S.expenses.filter(function(e){return e.pending;}).length; }
+function lowSku(){ return SKUS.filter(function(k){ var f=k[3]+k[4]+k[5]; return (k[6]-f)/k[6]<0.1; }).length; }
+
+/* ================= экраны ================= */
+function head(title, sub, actions){ return '<div class="head"><div><h1>'+title+'</h1>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'+(actions?'<div class="actions">'+actions+'</div>':'')+'</div>'; }
+
+function vDesk(){
+  function d(a,b){ var x=(a-b)/b; return (x>=0?'+':'')+pct(x)+' к августу'; }
+  var kpis=[
+    ['Выручка, млн сум',fmt(SEP.rev),d(SEP.rev,AUG.rev),SEP.rev>=AUG.rev?'var(--green)':'var(--warn)','pl'],
+    ['Валовая маржа',pct(SEP.gross/SEP.net),'в августе '+pct(AUG.gross/AUG.net),'var(--muted)','cost'],
+    ['Чистая прибыль, млн сум',fmt(SEP.np),d(SEP.np,AUG.np),SEP.np>=AUG.np?'var(--green)':'var(--warn)','pl'],
+    ['Деньги на конец месяца, млн',fmt(END_F),'план '+fmt(END_P),'var(--muted)','dds']
+  ].map(function(k){ return '<button class="kpi" data-go="'+k[4]+'"><span>'+k[0]+'</span><span class="v num">'+k[1]+'</span><small style="color:'+k[3]+'">'+k[2]+'</small></button>'; }).join('');
+  var ch=[['Апр',712,470],['Май',748,482],['Июн',701,468],['Июл',JUL.gross,JUL.opex],['Авг',AUG.gross,AUG.opex],['Сен',SEP.gross,SEP.opex]];
+  var bars=ch.map(function(c){ return '<div class="col"><i style="height:'+Math.round(c[1]/860*190)+'px;background:var(--green)"></i><i style="height:'+Math.round(c[2]/860*190)+'px;background:var(--amber)"></i></div>'; }).join('');
+  var mon=ch.map(function(c){return '<span>'+c[0]+'</span>';}).join('');
+  var st=[['Зарплата и налоги на ФОТ',SEP.fot],['Логистика и ГСМ',SEP.log],['Трейд-маркетинг',SEP.mkt],['Дорожные и командировочные',SEP.travel],['Аренда',SEP.rent],['Прочие',SEP.other]].map(function(x){
+    return '<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;font-size:14px;gap:10px"><span>'+x[0]+'</span><span class="num">'+fmt(x[1])+'</span></div><div class="meter"><i style="width:'+Math.round(x[1]/SEP.opex*100)+'%"></i></div></div>';
+  }).join('');
+  var p=pending();
+  var tasks=[
+    [p+' расход(а) ждут утверждения','Авансовые отчёты торговых и прочие расходы','var(--amber)','Утвердить','exp'],
+    ['Маржа ниже 10% у '+lowSku()+' SKU','Сахар и масло: проверьте бонусы сетям','#C0621F','Себестоимость','cost'],
+    ['Эргашев С. превысил лимит дорожных','Израсходовано 107% месячного лимита','#C0621F','Лимиты','exp'],
+    ['Поступления от покупателей ниже плана','Факт '+fmt(tot(INS[0]))+' из '+fmt(INS[0].p)+' млн','var(--muted)','План-факт','dds-plan']
+  ].map(function(t){ return '<button class="task" data-go="'+t[4]+'"><span class="dot" style="background:'+t[2]+'"></span><span class="t"><span>'+t[0]+'</span><small>'+t[1]+'</small></span><span class="go">'+t[3]+' ›</span></button>'; }).join('');
+  return '<div class="page">'+
+    head('Финансы за сентябрь','Все филиалы, в млн сум','<button class="ghost" data-go="imp">Загрузить из Excel</button><button class="btn" data-act="exp-new">+ Расход</button>')+
+    '<div class="grid4">'+kpis+'</div>'+
+    '<div class="split"><div class="card pad" style="display:flex;flex-direction:column;gap:16px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b style="font-size:17px">Валовая прибыль и расходы</b><div class="legend"><span><i style="background:var(--green)"></i>Валовая прибыль</span><span><i style="background:var(--amber)"></i>Опер. расходы</span></div></div><div><div class="chart">'+bars+'</div><div class="months">'+mon+'</div></div></div>'+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:17px">Структура расходов</b><span class="muted" style="font-size:13px">сентябрь, млн</span></div>'+st+'</div></div>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:14px"><b style="font-size:17px">Требует внимания</b></div>'+tasks+'</div>'+
+  '</div>';
+}
+
+function finTable(cols, rows){
+  var h='<tr><th>Статья</th>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';
+  var b=rows.map(function(r){
+    var cls=r.kind+(r.go?' link':'');
+    var attr=r.go?' data-go="'+r.go+'"':'';
+    return '<tr class="'+cls+'"'+attr+'><td>'+r.label+'</td>'+r.cells.map(function(c){ return '<td class="num '+(c.c||'')+'">'+c.v+'</td>'; }).join('')+'</tr>';
+  }).join('');
+  return '<div class="card scroll"><table class="fin"><thead>'+h+'</thead><tbody>'+b+'</tbody></table></div>';
+}
+
+function vPl(){
+  var byM=S.plView==='month', src=byM?MONTHS:REGIONS;
+  var cols=src.concat([sumOf(src)]).map(calc), last=cols[cols.length-1];
+  var def=[['rev','Выручка по отгрузкам','subt'],['bonus','Бонусы и ретро-скидки сетям','indent',1],['net','Чистая выручка','subt'],['cogs','Себестоимость продаж','indent',1,'cost'],['gross','Валовая прибыль','total'],[null,'Операционные расходы','hd'],['fot','Зарплата и налоги на ФОТ','indent',1,'salary'],['log','Логистика и ГСМ','indent',1,'exp'],['travel','Дорожные и командировочные','indent',1,'exp'],['rent','Аренда склада и офиса','indent',1],['mkt','Трейд-маркетинг','indent',1],['other','Прочие расходы','indent',1,'exp'],['opex','Итого операционные расходы','subt',1],['ebitda','EBITDA','total'],['amort','Амортизация','indent',1],['int','Проценты по кредитам','indent',1],['pbt','Прибыль до налога','subt'],['tax','Налог на прибыль, 15%','indent',1],['np','Чистая прибыль','grand']];
+  var rows=def.map(function(d){
+    if(!d[0]) return {kind:'hd',label:d[1],cells:cols.map(function(){return {v:''};}).concat([{v:''}])};
+    var cells=cols.map(function(c){ return {v:fmt(d[3]?-c[d[0]]:c[d[0]])}; });
+    cells.push({v:pct(last[d[0]]/last.rev),c:'p'});
+    return {kind:d[2],label:d[1],cells:cells,go:d[4]};
+  });
+  var hdr=(byM?['Июль','Август','Сентябрь','III кв.']:['Ташкент','Фергана','Самарканд','Итого']).concat(['% выручки']);
+  return '<div class="page">'+
+    head('Прибыли и убытки',(byM?'III квартал 2026, все филиалы':'Сентябрь 2026 по филиалам')+', млн сум. Строки со стрелкой открывают расшифровку',
+      '<div class="seg"><button class="'+(byM?'on':'')+'" data-act="pl-month">По месяцам</button><button class="'+(!byM?'on':'')+'" data-act="pl-region">По филиалам</button></div>')+
+    finTable(hdr,rows)+'</div>';
+}
+
+function vDds(){
+  var fact=S.ddsView==='fact', rows=[], cols;
+  if(fact){
+    cols=['1–6 сен','7–13 сен','14–20 сен','21–30 сен','Месяц'];
+    var ln=function(a,t,neg){ return a.map(function(v){return {v:fmt(neg?-v:v)};}).concat([{v:fmt(neg?-t:t)}]); };
+    var bl=[0,0,0,0,0].map(function(){return {v:''};});
+    rows.push({kind:'subt',label:'Остаток на начало',cells:ln(W_START,START)});
+    rows.push({kind:'hd',label:'Поступления',cells:bl});
+    INS.forEach(function(x){ rows.push({kind:'indent',label:x.l,cells:ln(x.w,tot(x))}); });
+    rows.push({kind:'subt',label:'Итого поступления',cells:ln(W_IN,F_IN)});
+    rows.push({kind:'hd',label:'Выплаты',cells:bl});
+    OUTS.forEach(function(x){ rows.push({kind:'indent',label:x.l,cells:ln(x.w,tot(x),true),go:x.go}); });
+    rows.push({kind:'subt',label:'Итого выплаты',cells:ln(W_OUT,F_OUT,true)});
+    rows.push({kind:'total',label:'Чистый денежный поток',cells:ln(W_IN.map(function(v,i){return v-W_OUT[i];}),F_IN-F_OUT)});
+    rows.push({kind:'grand',label:'Остаток на конец',cells:ln(W_END,END_F)});
+  } else {
+    cols=['План','Факт','Отклонение','Исполнение'];
+    var pf=function(p,f,out){ var dv=f-p, bad=out?dv>0:dv<0; return [{v:fmt(p)},{v:fmt(f)},{v:fmt(dv),c:dv===0?'':(bad?'bad':'good')},{v:p?pct(f/p):'—',c:'p'}]; };
+    var bl2=[0,0,0,0].map(function(){return {v:''};});
+    rows.push({kind:'subt',label:'Остаток на начало',cells:[{v:fmt(START)},{v:fmt(START)},{v:'0'},{v:''}]});
+    rows.push({kind:'hd',label:'Поступления',cells:bl2});
+    INS.forEach(function(x){ rows.push({kind:'indent',label:x.l,cells:pf(x.p,tot(x),false)}); });
+    rows.push({kind:'subt',label:'Итого поступления',cells:pf(P_IN,F_IN,false)});
+    rows.push({kind:'hd',label:'Выплаты',cells:bl2});
+    OUTS.forEach(function(x){ rows.push({kind:'indent',label:x.l,cells:pf(x.p,tot(x),true),go:x.go}); });
+    rows.push({kind:'subt',label:'Итого выплаты',cells:pf(P_OUT,F_OUT,true)});
+    rows.push({kind:'grand',label:'Остаток на конец',cells:[{v:fmt(END_P)},{v:fmt(END_F)},{v:fmt(END_F-END_P)},{v:pct(END_F/END_P)}]});
+  }
+  var cards=[['Остаток на 1 сентября',fmt(START)],['Поступило','+'+fmt(F_IN)],['Выплачено',fmt(-F_OUT)],['Остаток на 30 сентября',fmt(END_F),1]].map(function(k){
+    return '<div class="kpi'+(k[2]?' dark':'')+'"><span>'+k[0]+'</span><span class="v num">'+k[1]+'</span></div>';
+  }).join('');
+  return '<div class="page">'+
+    head('Движение денег','Сентябрь 2026, все счета и кассы, млн сум',
+      '<div class="seg"><button class="'+(fact?'on':'')+'" data-act="dds-fact">По неделям</button><button class="'+(!fact?'on':'')+'" data-act="dds-plan">План-факт</button></div>')+
+    '<div class="grid4">'+cards+'</div>'+finTable(cols,rows)+'</div>';
+}
+
+function vCost(){
+  var rows=SKUS.map(function(k){
+    var full=k[3]+k[4]+k[5], m=(k[6]-full)/k[6];
+    return '<tr class="click"><td class="main two">'+k[0]+'<small>'+k[1]+'</small></td>'+
+      '<td class="r num" data-label="Продано, шт">'+fmt(k[2])+'</td>'+
+      '<td class="r num" data-label="Закупка">'+fmt(k[3])+'</td>'+
+      '<td class="r num muted" data-label="Логистика">'+fmt(k[4])+'</td>'+
+      '<td class="r num muted" data-label="Бонусы">'+fmt(k[5])+'</td>'+
+      '<td class="r num" data-label="Себестоимость"><b>'+fmt(full)+'</b></td>'+
+      '<td class="r num" data-label="Цена продажи">'+fmt(k[6])+'</td>'+
+      '<td class="r" data-label="Маржа"><span class="badge '+(m<0.1?'b-bad':'b-ok')+'">'+pct(m)+'</span></td></tr>';
+  }).join('');
+  return '<div class="page">'+
+    head('Себестоимость и маржа по SKU','Сентябрь 2026, средневзвешенная закупка, сум за единицу','<button class="ghost">Настроить распределение</button>')+
+    '<div class="card pad formula"><span class="muted">Формула:</span><span class="f">Закупка</span>+<span class="f">Логистика на ед.</span>+<span class="f">Бонусы сетям на ед.</span>=<span class="f res">Полная себестоимость</span><span class="muted" style="margin-left:auto">Порог маржи 10%</span></div>'+
+    '<div class="card" style="overflow:hidden"><table class="list"><thead><tr><th>SKU</th><th class="r">Продано, шт</th><th class="r">Закупка</th><th class="r">Логистика</th><th class="r">Бонусы</th><th class="r">Себестоимость</th><th class="r">Цена</th><th class="r">Маржа</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+function vExp(){
+  var tr=S.expTab==='travel';
+  var list=S.expenses.filter(function(e){return e.type===S.expTab;});
+  var total=list.reduce(function(a,e){return a+e.sum;},0);
+  var cats=tr?['ГСМ','Суточные','Проживание','Ремонт авто','Парковка и штрафы']:['Связь','Банк','Ремонт склада','Офис','Прочее'];
+  var rows=list.map(function(e){
+    return '<tr><td class="main two"><b style="font-weight:600">'+esc(e.who)+'</b>'+(e.role?' <span class="muted" style="font-size:13px">· '+esc(e.role)+'</span>':'')+'<small>'+esc(e.desc)+'</small></td>'+
+      '<td data-label="Дата">'+e.date+'</td><td data-label="Статья">'+esc(e.cat)+'</td>'+
+      '<td class="r num" data-label="Сумма, сум"><b style="font-weight:600">'+fmt(e.sum)+'</b></td>'+
+      '<td class="r" data-label="Статус">'+(e.pending?'<button class="btn sm amber" data-act="approve" data-id="'+e.id+'">Утвердить</button>':'<span class="badge b-ok">Утверждён</span>')+'</td></tr>';
+  }).join('');
+  var form=S.showForm?
+    '<div class="card pad form" style="display:flex;flex-direction:column;gap:14px"><b style="font-size:16px">Новый расход: '+(tr?'дорожные и ГСМ':'прочие')+'</b>'+
+    '<div class="fgrid"><label class="fld">'+(tr?'Сотрудник':'Контрагент')+'<input data-f="who" value="'+esc(S.form.who)+'" placeholder="Например, Юсупов Д." autocomplete="off"></label>'+
+    '<label class="fld">Описание<input data-f="desc" value="'+esc(S.form.desc)+'" placeholder="Маршрут, цель поездки или назначение" autocomplete="off"></label>'+
+    '<label class="fld">Сумма, сум<input data-f="sum" value="'+esc(S.form.sum)+'" inputmode="numeric" placeholder="0" autocomplete="off"></label></div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px"><span class="muted" style="font-size:13px">Статья</span><div class="chips">'+cats.map(function(c){return '<button class="chip'+(S.form.cat===c?' on':'')+'" data-act="cat" data-v="'+c+'">'+c+'</button>';}).join('')+'</div></div>'+
+    '<div class="actions" style="justify-content:flex-end"><button class="ghost" style="border-style:dashed;margin-right:auto">Фото чека</button><button class="ghost" data-act="exp-cancel">Отмена</button><button class="btn" data-act="exp-save">Отправить на утверждение</button></div></div>':'';
+  var lim=tr?'<div class="card pad limits" style="display:flex;flex-direction:column;gap:14px"><div><b style="font-size:16px">Лимиты на месяц</b><div class="sub" style="margin-top:2px">ГСМ и дорожные по сотрудникам</div></div>'+
+    LIMITS.map(function(l){ var p=l[1]/l[2], ov=p>1;
+      return '<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>'+l[0]+'</span><span style="font-size:13px;font-weight:600;color:'+(ov?'var(--warn)':'var(--muted)')+'">'+(ov?'превышен, ':'')+pct(p)+'</span></div><div class="meter"><i style="width:'+Math.min(100,Math.round(p*100))+'%;background:'+(ov?'#C0621F':'var(--green)')+'"></i></div><div class="num muted" style="font-size:12px">'+fmt(l[1])+' / '+fmt(l[2])+'</div></div>';
+    }).join('')+'</div>':'';
+  return '<div class="page">'+
+    head('Расходы','Авансовые отчёты торговых и водителей, прочие расходы за сентябрь','<button class="btn" data-act="exp-new">+ Добавить расход</button>')+
+    '<div class="chips"><button class="chip'+(tr?' on':'')+'" data-act="tab-travel">Дорожные и ГСМ</button><button class="chip'+(!tr?' on':'')+'" data-act="tab-other">Прочие расходы</button></div>'+
+    form+
+    '<div class="expwrap"><div class="card" style="overflow:hidden"><table class="list"><thead><tr><th>'+(tr?'Сотрудник и описание':'Контрагент и назначение')+'</th><th>Дата</th><th>Статья</th><th class="r">Сумма, сум</th><th class="r">Статус</th></tr></thead><tbody>'+rows+'</tbody></table><div class="foot"><span class="muted">Итого:</span><b class="num">'+fmt(total)+'</b></div></div>'+lim+'</div></div>';
+}
+
+function vSalary(){
+  var s={g:0,n:0,p:0,c:0};
+  var rows=EMPS.filter(function(e){return S.dept==='all'||e[2]===S.dept;}).map(function(e){
+    var pl=e[5], rate=pl===null?0:pl>=100?0.3:pl>=90?0.15:0, bonus=e[4]*rate, g=e[4]+bonus, n=g*0.12, p=g-n;
+    s.g+=g; s.n+=n; s.p+=p; s.c++;
+    var cls=pl===null?'b-none':pl>=100?'b-ok':pl>=90?'b-wait':'b-bad';
+    return '<tr class="click"><td class="main two"><b style="font-weight:600">'+e[0]+'</b><small>'+e[1]+'</small></td>'+
+      '<td data-label="Филиал">'+e[3]+'</td><td class="r num" data-label="Оклад">'+fmt(e[4])+'</td>'+
+      '<td class="r" data-label="План"><span class="badge '+cls+'">'+(pl===null?'—':pl+'%')+'</span></td>'+
+      '<td class="r num" data-label="Бонус" style="color:var(--green)">'+(bonus?fmt(bonus):'—')+'</td>'+
+      '<td class="r num muted" data-label="НДФЛ 12%">'+fmt(n)+'</td>'+
+      '<td class="r num" data-label="К выплате"><b>'+fmt(p)+'</b></td></tr>';
+  }).join('');
+  var cards=[['Сотрудников',String(s.c)],['Начислено',fmt(s.g)],['НДФЛ 12%',fmt(s.n)],['К выплате',fmt(s.p),1]].map(function(k){
+    return '<div class="kpi'+(k[2]?' dark':'')+'"><span>'+k[0]+'</span><span class="v num" style="font-size:22px">'+k[1]+'</span></div>';
+  }).join('');
+  return '<div class="page">'+
+    head('Расчётная ведомость, сентябрь','Оклад + бонус за выполнение плана, НДФЛ 12%','<button class="ghost">Правила бонусов</button><button class="btn" data-act="salary-run">Рассчитать и провести</button>')+
+    '<div class="grid4">'+cards+'</div>'+
+    '<div class="chips">'+DEPTS.map(function(d){return '<button class="chip'+(S.dept===d[0]?' on':'')+'" data-act="dept" data-v="'+d[0]+'">'+d[1]+'</button>';}).join('')+'</div>'+
+    '<div class="card" style="overflow:hidden"><table class="list"><thead><tr><th>Сотрудник</th><th>Филиал</th><th class="r">Оклад</th><th class="r">План</th><th class="r">Бонус</th><th class="r">НДФЛ</th><th class="r">К выплате</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+function vShip(){
+  if(S.doc!==null) return vDoc();
+  var rows=SALES.map(function(d,i){
+    var done=d[5]||!!S.posted[d[0]];
+    return '<tr class="click" data-act="doc" data-i="'+i+'"><td class="main"><b class="num" style="font-weight:600">'+d[0]+'</b> · '+d[2]+'</td>'+
+      '<td data-label="Дата">'+d[1]+'</td><td data-label="Филиал">'+d[3]+'</td>'+
+      '<td class="r num" data-label="Сумма, сум"><b style="font-weight:600">'+fmt(d[4])+'</b></td>'+
+      '<td class="r" data-label="Статус"><span class="badge '+(done?'b-ok':'b-wait')+'">'+(done?'Проведена':'Черновик')+'</span></td></tr>';
+  }).join('');
+  return '<div class="page">'+
+    head('Отгрузки клиентам','Проведённые отгрузки сразу попадают в выручку и себестоимость P&L','<button class="btn" data-act="doc-new">+ Отгрузка</button>')+
+    '<div class="card" style="overflow:hidden"><table class="list"><thead><tr><th>Номер и клиент</th><th>Дата</th><th>Филиал</th><th class="r">Сумма, сум</th><th class="r">Статус</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function vDoc(){
+  var isNew=S.doc==='new', d=isNew?['ОТ-00129','25.09.2026','','Ташкент']:SALES[S.doc];
+  var r=0,c=0;
+  var rows=LINES.map(function(l,i){ var sum=l[1]*l[2], cost=l[1]*l[3]; r+=sum; c+=cost;
+    return '<tr><td class="main">'+(i+1)+'. '+l[0]+'</td><td class="r num" data-label="Кол-во">'+fmt(l[1])+'</td><td class="r num" data-label="Цена">'+fmt(l[2])+'</td><td class="r num muted" data-label="Себестоимость">'+fmt(l[3])+'</td><td class="r num" data-label="Сумма"><b>'+fmt(sum)+'</b></td><td class="r num" data-label="Маржа" style="color:var(--green)">'+pct((l[2]-l[3])/l[2])+'</td></tr>';
+  }).join('');
+  var fld=function(lbl,v){ return '<label class="fld">'+lbl+'<input value="'+esc(v)+'"></label>'; };
+  return '<div class="page">'+
+    '<div class="head"><div style="display:flex;align-items:center;gap:12px"><button class="ghost" data-act="doc-close" aria-label="Назад к списку" style="width:44px;padding:0;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button><div><h1>Отгрузка '+d[0]+'</h1><div class="sub">от '+d[1]+'</div></div></div>'+
+    '<div class="actions"><button class="ghost" data-act="doc-close">Записать</button><button class="btn" data-act="doc-post">Провести и закрыть</button></div></div>'+
+    '<div class="card pad fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">'+fld('Клиент',d[2])+fld('Торговый представитель','Юсупов Д.')+fld('Филиал',d[3])+fld('Дата',d[1])+'</div>'+
+    '<div class="card" style="overflow:hidden"><table class="list"><thead><tr><th>SKU</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r">Себест.</th><th class="r">Сумма</th><th class="r">Маржа</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div class="card pad" style="align-self:flex-end;width:min(380px,100%);display:flex;flex-direction:column;gap:10px;font-size:14px"><div style="display:flex;justify-content:space-between"><span class="muted">Выручка</span><span class="num">'+fmt(r)+'</span></div><div style="display:flex;justify-content:space-between"><span class="muted">Себестоимость</span><span class="num">'+fmt(c)+'</span></div><div style="height:1px;background:var(--line)"></div><div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700"><span>Валовая прибыль</span><span class="num">'+fmt(r-c)+'</span></div></div></div>';
+}
+
+function vImp(){
+  var files=FILES.map(function(f,i){ var done=!!S.files[i];
+    return '<div class="file'+(S.selFile===i?' sel':'')+'"><button class="pick" data-act="file-sel" data-i="'+i+'"><span class="xls">XLS</span><span style="min-width:0"><span style="display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis">'+esc(f.name)+'</span><small class="muted" style="font-size:13px">'+f.meta+' → '+f.target+'</small></span></button>'+
+      (done?'<span class="badge b-ok">Загружен</span>':'<button class="btn sm" data-act="file-run" data-i="'+i+'">Загрузить</button>')+'</div>';
+  }).join('');
+  var sel=FILES[S.selFile];
+  var map=sel.map.map(function(m){ return '<div class="map"><span class="a">'+m[0]+'</span><span class="muted" style="text-align:center">→</span><span class="b">'+m[1]+'</span></div>'; }).join('');
+  return '<div class="page">'+
+    head('Переезд из Excel','Загрузите текущие таблицы: система разложит данные по разделам и запомнит шаблон')+
+    '<div class="expwrap"><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">'+
+    '<div class="drop">'+icon('imp',34)+'<b style="font-size:16px">Выберите или перетащите файлы .xlsx</b><span class="muted" style="font-size:14px">P&amp;L, ДДС, дорожные, ведомости ЗП, себестоимость</span><button class="btn">Выбрать файлы</button></div>'+
+    '<div class="card" style="overflow:hidden">'+files+'</div></div>'+
+    '<div class="card pad limits" style="width:420px;display:flex;flex-direction:column;gap:12px"><div><b style="font-size:16px">Сопоставление колонок</b><div class="sub" style="margin-top:2px">'+esc(sel.name)+'</div></div>'+
+    '<div class="map muted" style="font-size:12px;font-weight:600"><span>В Excel</span><span></span><span>В системе</span></div>'+map+
+    '<div class="muted" style="font-size:13px;padding-top:8px;border-top:1px solid var(--line2)">Шаблон сохранится: следующий файл того же вида загрузится без настройки.</div></div></div></div>';
+}
+
+/* ================= навигация ================= */
+var VIEWS={desk:vDesk,pl:vPl,dds:vDds,cost:vCost,exp:vExp,salary:vSalary,ship:vShip,imp:vImp};
+var TABS=['desk','pl','dds','exp'];
+var MORE=['cost','salary','ship','imp'];
+
+function renderNav(){
+  var p=pending();
+  var pill=function(k){ return k==='exp'&&p?'<span class="pill">'+p+'</span>':''; };
+  var btn=function(k){ return '<button class="nav'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k)+TITLES[k]+pill(k)+'</button>'; };
+  document.getElementById('sidenav').innerHTML='<div class="group">Финансы</div>'+['desk','pl','dds','cost','exp','salary'].map(btn).join('')+'<div class="group">Операции</div>'+['ship','imp'].map(btn).join('');
+  var inMore=MORE.indexOf(S.section)!==-1;
+  document.getElementById('tabs').innerHTML=TABS.map(function(k){
+    var short={desk:'Сводка',pl:'P&L',dds:'Деньги',exp:'Расходы'}[k];
+    return '<button class="tab'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k,22)+short+pill(k)+'</button>';
+  }).join('')+'<button class="tab'+(inMore?' on':'')+'" data-act="more">'+icon('more',22)+'Ещё</button>';
+  document.getElementById('sheet').innerHTML='<div class="grab"></div>'+MORE.map(btn).join('');
+}
+function render(keepScroll){
+  var m=document.getElementById('main'), y=m.scrollTop;
+  m.innerHTML=VIEWS[S.section]();
+  document.getElementById('crumb').textContent=TITLES[S.section];
+  document.title='Crafers Fin · '+TITLES[S.section];
+  renderNav();
+  m.scrollTop=keepScroll?y:0;
+}
+function go(k){
+  document.getElementById('app').classList.remove('more-open');
+  if(k==='dds-plan'){ S.ddsView='plan'; k='dds'; }
+  S.section=k; S.doc=null; S.showForm=false;
+  try{ if(location.hash!=='#'+k) history.pushState(null,'','#'+k); }catch(e){}
+  render(false);
+}
+var tt;
+function toast(t){
+  var el=document.getElementById('toast');
+  el.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9A441" stroke-width="2.2" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg>'+esc(t);
+  el.classList.add('show'); clearTimeout(tt); tt=setTimeout(function(){el.classList.remove('show');},2600);
+}
+
+document.addEventListener('click',function(ev){
+  var g=ev.target.closest('[data-go]'); if(g){ go(g.getAttribute('data-go')); return; }
+  var a=ev.target.closest('[data-act]'); if(!a) return;
+  var act=a.getAttribute('data-act'), v=a.getAttribute('data-v'), i=a.getAttribute('data-i');
+  switch(act){
+    case 'more': document.getElementById('app').classList.add('more-open'); return;
+    case 'more-close': document.getElementById('app').classList.remove('more-open'); return;
+    case 'pl-month': S.plView='month'; break;
+    case 'pl-region': S.plView='region'; break;
+    case 'dds-fact': S.ddsView='fact'; break;
+    case 'dds-plan': S.ddsView='plan'; break;
+    case 'tab-travel': S.expTab='travel'; S.form.cat='ГСМ'; break;
+    case 'tab-other': S.expTab='other'; S.form.cat='Связь'; break;
+    case 'cat': S.form.cat=v; break;
+    case 'exp-new': if(S.section!=='exp'){ S.section='exp'; try{ history.pushState(null,'','#exp'); }catch(e){} } S.showForm=true; render(false); return;
+    case 'exp-cancel': S.showForm=false; break;
+    case 'exp-save':
+      var amt=parseInt(String(S.form.sum).replace(/\D/g,''),10)||0;
+      S.expenses.unshift({id:Date.now(),type:S.expTab,date:'25.09',who:S.form.who||'Без имени',role:'',desc:S.form.desc||'—',cat:S.form.cat,sum:amt,pending:true});
+      S.form={who:'',desc:'',sum:'',cat:S.form.cat}; S.showForm=false; render(true); toast('Расход отправлен на утверждение'); return;
+    case 'approve':
+      S.expenses.forEach(function(e){ if(String(e.id)===a.getAttribute('data-id')) e.pending=false; });
+      render(true); toast('Расход утверждён и попал в P&L'); return;
+    case 'dept': S.dept=v; break;
+    case 'salary-run': toast('Ведомость рассчитана, ФОТ отражён в P&L и ДДС'); return;
+    case 'doc': S.doc=+i; render(false); return;
+    case 'doc-new': S.doc='new'; render(false); return;
+    case 'doc-close': S.doc=null; render(false); return;
+    case 'doc-post':
+      var no=S.doc==='new'?'ОТ-00129':SALES[S.doc][0]; if(S.doc!=='new') S.posted[no]=true;
+      S.doc=null; render(false); toast('Отгрузка '+no+' проведена'); return;
+    case 'file-sel': S.selFile=+i; break;
+    case 'file-run': S.files[+i]=true; S.selFile=+i; render(true); toast(FILES[+i].name+' загружен в раздел «'+FILES[+i].target+'»'); return;
+    default: return;
+  }
+  render(true);
+});
+document.addEventListener('input',function(ev){
+  var f=ev.target.getAttribute && ev.target.getAttribute('data-f');
+  if(f) S.form[f]=ev.target.value;
+});
+window.addEventListener('popstate',function(){
+  var k=location.hash.slice(1); if(VIEWS[k]){ S.section=k; S.doc=null; S.showForm=false; render(false); }
+});
+
+var start=location.hash.slice(1); if(VIEWS[start]) S.section=start;
+render(false);
+})();
+</script>
+</body>
+</html>
