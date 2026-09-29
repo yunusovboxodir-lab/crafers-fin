@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#17201C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crafers Fin">
+<title>Crafers Fin · касса и учёт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F4F2EC; --surface:#FFFFFF; --soft:#FAF9F5; --tint:#EAE6DA; --line:#E3E0D6; --line2:#EFECE3;
+  --ink:#1B1D1A; --muted:#5E625B; --green:#1F5E4A; --green-soft:#E3EFE8; --amber:#D9A441;
+  --amber-soft:#F5EAD6; --amber-ink:#7A4A12; --warn:#8A3B0A; --warn-soft:#F5E1D2; --side:#17201C;
+  --font:'Onest','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--ground);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* ---------- каркас ---------- */
+.app{display:flex;height:100%;height:100dvh}
+.side{width:248px;flex-shrink:0;background:var(--side);color:#fff;display:flex;flex-direction:column;gap:20px;padding:20px 14px;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--amber);color:var(--side);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0}
+.brand b{display:block;font-size:17px}
+.brand small{color:#93A39A;font-size:12px}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.group{color:#7F8F86;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:12px 14px 6px}
+.nav{display:flex;align-items:center;gap:12px;width:100%;height:42px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:#B9C4BE;font-size:14px;font-weight:500;text-align:left}
+.nav:hover{background:#26332D;color:#fff}
+.nav.on{background:#2E4038;color:#fff;font-weight:600}
+.nav svg,.tab svg{flex-shrink:0}
+.pill{margin-left:auto;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--amber);color:var(--side);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.close{margin-top:auto;background:#212C27;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:#B9C4BE}
+.close b{color:#fff;font-size:14px}
+.bar{height:6px;background:#33413A;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:64%;background:var(--amber)}
+
+.body{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{min-height:64px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--line)}
+.crumbs{font-size:14px;color:var(--muted)}
+.crumbs b{color:var(--ink)}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;height:40px;width:250px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.search input{border:0;outline:0;background:transparent;font-size:14px;flex:1;min-width:0}
+.chipbtn{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
+main{flex:1;overflow:auto;padding:28px;-webkit-overflow-scrolling:touch}
+.page{display:flex;flex-direction:column;gap:18px;max-width:1280px}
+
+/* ---------- элементы ---------- */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;font-weight:700;line-height:1.2}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{height:44px;padding:0 18px;border:0;border-radius:10px;background:var(--green);color:#fff;font-size:14px;font-weight:600}
+.btn:hover{filter:brightness(.92)}
+.btn.sm{height:34px;padding:0 12px;border-radius:8px;font-size:13px}
+.btn.amber{background:var(--amber);color:var(--side)}
+.ghost{height:44px;padding:0 16px;border:1px solid #D6D2C4;border-radius:10px;background:var(--surface);font-size:14px}
+.ghost:hover{background:#ECE8DD}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.pad{padding:20px 22px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi{padding:20px;display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.kpi:hover{background:var(--soft)}
+.kpi span:first-child{color:var(--muted);font-size:13px}
+.kpi .v{font-size:26px;font-weight:600;letter-spacing:-.5px}
+.kpi small{font-size:13px}
+.kpi.dark{background:var(--green);color:#fff;border-color:var(--green)}
+.kpi.dark span:first-child{color:#D8E6DE}
+.seg{display:flex;background:var(--tint);border-radius:10px;padding:4px;gap:4px}
+.seg button{height:36px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.chip{height:36px;padding:0 14px;border-radius:18px;border:1px solid #D6D2C4;background:#fff;font-size:13px;white-space:nowrap;flex-shrink:0}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.badge{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--green-soft);color:var(--green)}
+.b-wait{background:var(--amber-soft);color:var(--amber-ink)}
+.b-bad{background:var(--warn-soft);color:var(--warn)}
+.b-none{background:var(--line2);color:var(--muted)}
+
+/* финансовые таблицы (P&L, ДДС) */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+table{border-collapse:collapse;width:100%}
+.fin{min-width:760px;font-size:14px}
+.fin th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:12px 16px;text-align:right;white-space:nowrap}
+.fin th:first-child{text-align:left}
+.fin td{padding:11px 16px;border-top:1px solid var(--line2);text-align:right;white-space:nowrap;background:#fff}
+.fin td:first-child{text-align:left;white-space:normal;min-width:220px}
+.fin th:first-child,.fin td:first-child{position:sticky;left:0;z-index:1}
+.fin tr.indent td:first-child{padding-left:34px}
+.fin tr.subt td{font-weight:600}
+.fin tr.total td{background:#F1EEE5;font-weight:700}
+.fin tr.grand td{background:var(--green);color:#fff;font-weight:700}
+.fin tr.grand td.p{color:#D8E6DE}
+.fin tr.hd td{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:9px 16px}
+.fin tr.link{cursor:pointer}
+.fin tr.link:hover td{background:#F7F5EF}
+.fin tr.link td:first-child::after{content:"  ›";color:var(--green);font-weight:700}
+.fin td.p{color:var(--muted)}
+.fin td.bad{color:var(--warn);font-weight:600}
+.fin td.good{color:var(--green)}
+
+/* списки (превращаются в карточки на телефоне) */
+.list{font-size:14px}
+.list th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:12px 16px;text-align:left;white-space:nowrap}
+.list td{padding:13px 16px;border-top:1px solid var(--line2);vertical-align:middle}
+.list .r{text-align:right}
+.list tr.click{cursor:pointer}
+.list tr.click:hover td{background:#F7F5EF}
+.list .two small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.foot{display:flex;justify-content:flex-end;gap:16px;padding:14px 20px;border-top:1px solid var(--line);background:var(--soft);font-size:14px;border-radius:0 0 14px 14px}
+
+/* сводка */
+.split{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.chart{height:200px;display:flex;align-items:flex-end;gap:14px;padding:0 4px;border-bottom:1px solid var(--line)}
+.chart .col{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:5px;height:190px}
+.chart .col i{display:block;width:min(26px,40%);border-radius:6px 6px 2px 2px}
+.months{display:flex;gap:14px;padding:6px 4px 0}
+.months span{flex:1;text-align:center;font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.meter{height:8px;background:var(--line2);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px;background:var(--green)}
+.task{display:flex;align-items:center;gap:14px;width:100%;padding:14px 20px;border:0;border-top:1px solid var(--line2);background:#fff;text-align:left}
+.task:hover{background:#F7F5EF}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task .t{flex:1;display:flex;flex-direction:column;gap:2px}
+.task .t small{color:var(--muted);font-size:13px}
+.task .go{font-size:13px;color:var(--green);font-weight:600;white-space:nowrap}
+
+
+.form{border:1px solid var(--green)}
+.fgrid{display:grid;grid-template-columns:1fr 1.4fr 180px;gap:14px}
+label.fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+label.fld input{height:44px;padding:0 12px;border:1px solid #D6D2C4;border-radius:10px;font-size:16px;color:var(--ink);background:#fff;width:100%}
+.expwrap{display:flex;gap:16px;align-items:flex-start}
+.expwrap>.card:first-child{flex:1;min-width:0}
+.limits{width:320px;flex-shrink:0}
+
+
+.toast{position:fixed;right:24px;bottom:24px;background:var(--side);color:#fff;padding:14px 18px;border-radius:12px;font-size:14px;display:flex;align-items:center;gap:10px;z-index:50;max-width:calc(100vw - 32px);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+/* нижняя навигация и «Ещё» — только телефон */
+.tabs,.sheet,.scrim{display:none}
+
+/* первая версия */
+.abar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-radius:12px;background:var(--green-soft);color:var(--green);font-size:13px}
+.abar>b{font-weight:600;margin-right:4px}
+.atag{display:inline-flex;align-items:center;min-height:26px;padding:3px 10px;border-radius:13px;background:#fff;border:1px solid #C9DDD2;color:var(--ink);font-size:12px;line-height:1.3}
+.atag i{font-style:normal;font-weight:700;color:var(--green);margin-right:5px}
+.abar button{margin-left:auto;height:32px;padding:0 12px;border:0;border-radius:8px;background:var(--amber);color:var(--side);font-weight:600;font-size:12px;white-space:nowrap}
+.nav.later{opacity:.6}
+.fchart{position:relative}
+.plist{min-width:300px}
+.minline{position:absolute;left:0;right:0;border-top:2px dashed var(--warn);opacity:.55;pointer-events:none}
+.act-sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:13px;color:var(--muted)}
+.act-sign span{border-top:1px solid var(--line);padding-top:28px}
+.sheet{max-height:85vh;overflow-y:auto}
+/* анкета */
+.intro{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:20px 22px;border-radius:14px;background:var(--side);color:#fff}
+.intro p{margin:6px 0 0;color:#C9D3CD;font-size:14px;line-height:1.5;max-width:760px}
+.intro .btn{background:var(--amber);color:var(--side)}
+.intro .ghost{color:var(--ink);border-color:transparent}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qblock{scroll-margin-top:8px;overflow:hidden}
+.qnote{margin:12px 22px 6px;padding:12px 14px;border-radius:10px;background:var(--soft);border:1px solid var(--line2);font-size:13px;color:var(--muted);line-height:1.5}
+.qnote b{color:var(--ink);font-weight:600}
+.q{padding:16px 22px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:10px}
+.q .qt{font-size:15px;font-weight:600;line-height:1.4}
+.q .qh{font-size:13px;color:var(--muted);margin-top:-4px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid #D6D2C4;border-radius:10px;background:#fff;font-size:14px;line-height:1.3;cursor:pointer}
+.opt input{accent-color:var(--green);width:16px;height:16px;margin:0;flex-shrink:0}
+.opt:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.qin{width:100%;min-height:44px;padding:10px 12px;border:1px solid #D6D2C4;border-radius:10px;font:inherit;font-size:15px;color:var(--ink);background:#fff;resize:vertical}
+.qin.c{min-height:38px;padding:7px 12px;font-size:14px;border-style:dashed}
+.qprog{height:8px;background:var(--line2);border-radius:4px;overflow:hidden}
+.qprog i{display:block;height:100%;width:0;background:var(--green);border-radius:4px}
+
+@media (max-width: 1100px){
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .split{grid-template-columns:1fr}
+  .expwrap{flex-direction:column}
+  .limits{width:100%}
+  .search{display:none}
+}
+
+@media (max-width: 760px){
+  .side{display:none}
+  .top{padding:0 16px;padding-top:env(safe-area-inset-top,0px);min-height:calc(56px + env(safe-area-inset-top,0px))}
+  .top .chipbtn.org,.top .chipbtn.period{display:none}
+  .crumbs{font-size:17px}
+  .crumbs .path{display:none}
+  main{padding:16px 14px calc(88px + env(safe-area-inset-bottom,0px))}
+  h1{font-size:22px}
+  .head{align-items:flex-start}
+  .actions{width:100%}
+  .actions .btn,.actions .ghost{flex:1}
+  .actions .seg{width:100%}
+  .actions .seg button{flex:1}
+  .grid4{gap:10px}
+  .kpi{padding:14px}
+  .kpi .v{font-size:20px}
+  .fgrid{grid-template-columns:1fr}
+  .pad{padding:16px}
+  .toast{left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .fgrid2{grid-template-columns:1fr}
+  .qnote{margin-left:16px;margin-right:16px}
+  .intro{padding:16px}
+  .list td.plist{display:block;text-align:left;min-width:0}
+  .list td.plist::before{display:block;margin-bottom:4px}
+  .intro .btn{width:100%}
+
+  /* списки как карточки */
+  .list thead{display:none}
+  .list,.list tbody,.list tr,.list td{display:block;width:100%}
+  .list tr{padding:12px 16px;border-top:1px solid var(--line2)}
+  .list tr:first-child{border-top:0}
+  .list td{border:0;padding:3px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:right}
+  .list td::before{content:attr(data-label);color:var(--muted);font-size:13px;text-align:left}
+  .list td.main{display:block;text-align:left;padding-bottom:6px;font-size:15px}
+  .list td.main::before{display:none}
+  .list td.hide-m{display:none}
+
+  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:500;padding:6px 0;min-height:52px;position:relative}
+  .tab.on{color:var(--green);font-weight:700}
+  .tab .pill{position:absolute;top:2px;left:calc(50% + 6px);margin:0;min-width:18px;height:18px;font-size:11px}
+  .scrim{position:fixed;inset:0;background:rgba(23,32,28,.4);z-index:45}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:46;background:#fff;border-radius:18px 18px 0 0;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:2px}
+  .sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 10px}
+  .sheet .nav{color:var(--ink);height:52px;font-size:16px}
+  .sheet .nav.on{background:var(--green-soft);color:var(--green)}
+  .more-open .scrim{display:block}
+  .more-open .sheet{display:flex}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+
+/* приложение версии 0 */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+label.fld select,label.fld textarea{font-size:15px}
+select.qin{height:44px;padding:0 10px;appearance:auto}
+.msel{border:0;background:transparent;font:inherit;font-weight:600;color:var(--ink);padding:0 2px;max-width:170px}
+.msg{display:flex;flex-direction:column;gap:6px;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.45}
+.msg.ok{background:var(--green-soft);color:var(--green)}
+.msg.warn{background:var(--amber-soft);color:var(--amber-ink)}
+.msg.bad{background:var(--warn-soft);color:var(--warn)}
+.msg b{font-weight:600}
+.msg .actions{margin-top:4px}
+.linkbtn{border:0;background:transparent;padding:0;color:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.chipbtn select,.chipbtn input{height:32px}
+.sheet{max-height:85vh;overflow-y:auto}
+@media (max-width: 1100px){ .split3{grid-template-columns:1fr} }
+</style>
+<script src="xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">CF</div><div><b>Crafers Fin</b><small>Касса и учёт · версия 0</small></div></div>
+    <nav id="sidenav" aria-label="Разделы"></nav>
+    <div class="close" id="sidebox"></div>
+  </aside>
+  <div class="body">
+    <header class="top">
+      <div class="crumbs"><span class="path">Crafers Fin / </span><b id="crumb">Касса</b></div>
+      <div class="spacer"></div>
+      <label class="chipbtn period">Месяц отчётов <select id="month" class="msel" aria-label="Месяц отчётов"></select></label>
+      <button class="chipbtn" id="bkbtn" type="button" data-go="data"></button>
+    </header>
+    <main id="main"></main>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Разделы"></nav>
+  <div class="scrim" data-act="more-close"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-label="Другие разделы"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= хранилище ================= */
+const KEY='crafersfin.app.v1';
+const ARTS0=[
+  ['in_client','Оплата от клиентов','in','client','none'],
+  ['in_podret','Возврат неиспользованного подотчёта','in','pod_return','employee'],
+  ['in_owner','Вклад учредителей','in','equity_in','none'],
+  ['in_loan','Займ получен','in','loan_in','none'],
+  ['in_other','Прочие поступления','in','other_in','none'],
+  ['out_sup','Оплата поставщику','out','supplier','supplier'],
+  ['out_salary','Зарплата и аванс','out','salary','employee'],
+  ['out_pod','Выдача под отчёт','out','pod_issue','employee'],
+  ['out_fuel','ГСМ','out','direct','car'],
+  ['out_repair','Ремонт машин','out','direct','car'],
+  ['out_bonus','Бонусы и акции клиентам','out','bonus','none'],
+  ['out_rent','Аренда','out','expense','none'],
+  ['out_comm','Связь и интернет','out','expense','none'],
+  ['out_util','Коммунальные услуги','out','expense','none'],
+  ['out_bank','Услуги банка','out','expense','none'],
+  ['out_ptax','Налоги с зарплаты: НДФЛ, соцналог','out','payroll_tax','none'],
+  ['out_vat','НДС: оплата в бюджет','out','vat_pay','none'],
+  ['out_ctax','Налог на прибыль: оплата','out','ctax_pay','none'],
+  ['out_otax','Прочие налоги и сборы','out','expense','none'],
+  ['out_other','Прочие расходы','out','expense','none'],
+  ['out_loan','Возврат займа','out','loan_out','none'],
+  ['out_owner','Выплата учредителям','out','equity_out','none']
+];
+function blank(){
+  return {v:1,
+    settings:{startDate:'2026-10-01',salesVat:true,purchVat:true,vatRate:12,ctax:15,cogsPct:80,bigLimit:3000000},
+    params:[{from:'2000-01-01',salesVat:true,purchVat:true,vatRate:12,ctax:15,cogsPct:80}],
+    opening:{done:false,cash:0,clients:0,goods:0,fixed:0,loans:0,vat:0,ctax:0,pod:{},sup:{}},
+    customArts:[],suppliers:[],employees:[],cars:[],
+    ops:[],inv:[],podc:[],sales:[],saleKeys:{},imports:[],days:{},log:[],salesMap:null,lastBackup:null};
+}
+let DB=null;
+try{ DB=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ DB=null; }
+if(!DB||DB.v!==1) DB=blank();
+DB.saleKeys={};
+if(!Array.isArray(DB.params)){ const s=DB.settings; DB.params=[{from:'2000-01-01',salesVat:s.salesVat,purchVat:s.purchVat,vatRate:s.vatRate,ctax:s.ctax,cogsPct:s.cogsPct}]; }
+let STORE_OK=true;
+function persist(){ try{ localStorage.setItem(KEY,JSON.stringify(DB)); STORE_OK=true; return true; }catch(e){ STORE_OK=false; return false; } }
+function save(){
+  if(!persist()) toast('Память браузера заполнена: данные сохраняются только в файл копии. Скачайте копию в разделе «Данные»');
+  scheduleBackup();
+}
+/* параметры действуют с даты: прошлые месяцы не пересчитываются */
+function P(d){ let p=DB.params[0]; DB.params.forEach(x=>{ if(x.from<=d) p=x; }); return p; }
+function log(what,detail){ DB.log.unshift({at:new Date().toISOString(),what:what,detail:detail||''}); if(DB.log.length>3000) DB.log.length=3000; }
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+/* ================= утилиты ================= */
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const dmy=iso=>iso?iso.slice(8,10)+'.'+iso.slice(5,7)+'.'+iso.slice(0,4):'';
+const grp=s=>s.replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');
+const fmt=n=>{ const r=Math.round(n||0); const s=grp(Math.abs(r).toString()); return r<0?'−'+s:s; };
+const mln=n=>{ const v=Math.round(Math.abs(n||0)/1e5)/10, p=v.toFixed(1).split('.'); const s=grp(p[0])+','+p[1]; return n<0&&v!==0?'−'+s:s; };
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sum=(a,f)=>a.reduce((s,x)=>s+(typeof f==='function'?f(x):x[f]),0);
+function parseSum(v){
+  if(typeof v==='number') return isFinite(v)?Math.round(v):NaN;
+  let s=String(v==null?'':v).replace(/[\s\u00A0\u202F']/g,'');
+  if(/^-?\d{1,3}([.,]\d{3})+$/.test(s)) s=s.replace(/[.,]/g,'');
+  else s=s.replace(',','.');
+  if(!/^-?\d+(\.\d+)?$/.test(s)) return NaN;
+  return Math.round(parseFloat(s));
+}
+const MONTHS=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const monthName=m=>{ const n=MONTHS[+m.slice(5,7)-1]; return n[0].toUpperCase()+n.slice(1)+' '+m.slice(0,4); };
+function monthRange(m){ const y=+m.slice(0,4), mo=+m.slice(5,7), last=new Date(y,mo,0).getDate(); return [m+'-01',m+'-'+String(last).padStart(2,'0')]; }
+function addMonth(m){ let y=+m.slice(0,4), mo=+m.slice(5,7)+1; if(mo>12){ mo=1; y++; } return y+'-'+String(mo).padStart(2,'0'); }
+function monthsBetween(a,b){ const r=[]; let m=a.slice(0,7); while(m<=b.slice(0,7)){ r.push(m); m=addMonth(m); } return r; }
+
+/* ================= справочники ================= */
+function arts(){ return ARTS0.map(a=>({id:a[0],name:a[1],dir:a[2],kind:a[3],need:a[4]})).concat(DB.customArts); }
+function A(id){ return arts().find(a=>a.id===id)||{id:id,name:'(статья удалена)',dir:'out',kind:'expense',need:'none'}; }
+const listOf=k=>DB[k];
+function nameOf(k,id){ const x=DB[k].find(i=>i.id===id); return x?x.name:'—'; }
+const NEED={supplier:'suppliers',employee:'employees',car:'cars'};
+const NEED_LABEL={supplier:'Поставщик',employee:'Сотрудник',car:'Машина'};
+function partyName(o){ const a=A(o.art); return a.need==='none'?'':nameOf(NEED[a.need],o.party); }
+
+/* ================= расчёты: одна логика на все отчёты ================= */
+function inRange(x,f,t){ return x.date>=f&&x.date<=t; }
+function cashAt(d){ return DB.opening.cash+sum(DB.ops.filter(o=>o.date<=d),o=>o.dir==='in'?o.sum:-o.sum); }
+function cashBefore(d){ return DB.opening.cash+sum(DB.ops.filter(o=>o.date<d),o=>o.dir==='in'?o.sum:-o.sum); }
+function supBal(id,d){
+  return (+DB.opening.sup[id]||0)+sum(DB.inv.filter(x=>x.sup===id&&x.date<=d),'sum')-sum(DB.ops.filter(o=>o.party===id&&A(o.art).kind==='supplier'&&o.date<=d),'sum');
+}
+function podBal(id,d){
+  const k=o=>A(o.art).kind;
+  return (+DB.opening.pod[id]||0)+sum(DB.ops.filter(o=>o.party===id&&k(o)==='pod_issue'&&o.date<=d),'sum')
+    -sum(DB.ops.filter(o=>o.party===id&&k(o)==='pod_return'&&o.date<=d),'sum')-sum(DB.podc.filter(x=>x.emp===id&&x.date<=d),'sum');
+}
+function plCalc(f,t){
+  const st=P(f), vr=st.vatRate/100;
+  const sl=DB.sales.filter(x=>inRange(x,f,t));
+  const G=sum(sl,'sum'), R=sum(sl,'ret'), S=G-R;
+  const N0=st.salesVat?S/(1+vr):S, vat=st.salesVat?S-N0:0;
+  const ops=DB.ops.filter(o=>inRange(o,f,t)), pc=DB.podc.filter(x=>inRange(x,f,t));
+  const k=o=>A(o.art).kind;
+  const lines={};
+  ops.filter(o=>k(o)==='direct'||k(o)==='expense').concat(pc).forEach(o=>{ lines[o.art]=(lines[o.art]||0)+o.sum; });
+  const direct=sum(Object.keys(lines).filter(id=>A(id).kind==='direct'),id=>lines[id]);
+  const expense=sum(Object.keys(lines).filter(id=>A(id).kind==='expense'),id=>lines[id]);
+  const sal=ops.filter(o=>k(o)==='salary');
+  const grpOf=o=>{ const e=DB.employees.find(x=>x.id===o.party); return e?e.group:'office'; };
+  const salD=sum(sal.filter(o=>grpOf(o)==='direct'),'sum'), salO=sum(sal.filter(o=>grpOf(o)!=='direct'),'sum');
+  const bonus=sum(ops.filter(o=>k(o)==='bonus'),'sum'), ptax=sum(ops.filter(o=>k(o)==='payroll_tax'),'sum'), otherIn=sum(ops.filter(o=>k(o)==='other_in'),'sum');
+  const net=N0-bonus, cogs=N0*st.cogsPct/100, gross=net-cogs-direct-salD, opex=salO+ptax+expense, ebitda=gross-opex, pbt=ebitda+otherIn;
+  const ctax=Math.max(0,pbt)*st.ctax/100, np=pbt-ctax;
+  const invG=sum(DB.inv.filter(x=>inRange(x,f,t)),'sum'), invNet=st.purchVat?invG/(1+vr):invG, vatIn=invG-invNet;
+  return {G,R,S,N0,vat,rec:S,bonus,cogs,lines,direct,expense,salD,salO,ptax,otherIn,net,gross,opex,ebitda,pbt,ctax,np,invG,invNet,vatIn};
+}
+function periodsTo(d){
+  const s=DB.settings.startDate; if(d<s) return [];
+  return monthsBetween(s,d).map(m=>{ const r=monthRange(m); return [r[0]<s?s:r[0], r[1]>d?d:r[1]]; });
+}
+function openingEquity(){
+  const O=DB.opening; let debt=0, adv=0;
+  Object.keys(O.sup).forEach(id=>{ const v=+O.sup[id]||0; if(v>0) debt+=v; else adv-=v; });
+  const pod=sum(Object.keys(O.pod),id=>+O.pod[id]||0);
+  return O.cash+O.clients+O.goods+pod+adv+O.fixed-(debt+O.loans+O.vat+O.ctax);
+}
+function balance(d){
+  const O=DB.opening, k=o=>A(o.art).kind;
+  let rec=0,cogs=0,invNet=0,vatNet=0,ctax=0,np=0;
+  periodsTo(d).forEach(p=>{ const c=plCalc(p[0],p[1]); rec+=c.rec; cogs+=c.cogs; invNet+=c.invNet; vatNet+=c.vat-c.vatIn; ctax+=c.ctax; np+=c.np; });
+  const ops=DB.ops.filter(o=>o.date<=d), by=kind=>sum(ops.filter(o=>k(o)===kind),'sum');
+  const cash=cashAt(d), clients=O.clients+rec-by('client'), goods=O.goods+invNet-cogs;
+  const pod=sum(Object.keys(O.pod),id=>+O.pod[id]||0)+by('pod_issue')-by('pod_return')-sum(DB.podc.filter(x=>x.date<=d),'sum');
+  const ids={}; DB.suppliers.forEach(s=>ids[s.id]=1); Object.keys(O.sup).forEach(id=>ids[id]=1);
+  let supDebt=0, supAdv=0; Object.keys(ids).forEach(id=>{ const b=supBal(id,d); if(b>0) supDebt+=b; else supAdv-=b; });
+  const loans=O.loans+by('loan_in')-by('loan_out'), vat=O.vat+vatNet-by('vat_pay'), ctaxL=O.ctax+ctax-by('ctax_pay');
+  const As=cash+clients+goods+pod+supAdv+O.fixed, Ls=supDebt+loans+vat+ctaxL, eq=As-Ls;
+  const eqCalc=openingEquity()+np+by('equity_in')-by('equity_out');
+  return {cash,clients,goods,pod,supAdv,fixed:O.fixed,A:As,supDebt,loans,vat,ctax:ctaxL,L:Ls,eq,eqCalc,np};
+}
+
+/* ================= проверки ввода кассы ================= */
+function dayClosed(d){ return !!(DB.days[d]&&DB.days[d].closed); }
+function lastClosed(){ return Object.keys(DB.days).filter(dayClosed).sort().pop()||''; }
+/* первый день, на конец которого касса уходит в минус, для заданного списка операций */
+function firstNegative(list){
+  const days={}; list.forEach(o=>{ days[o.date]=(days[o.date]||0)+(o.dir==='in'?o.sum:-o.sum); });
+  let b=DB.opening.cash;
+  for(const d of Object.keys(days).sort()){ b+=days[d]; if(b<0) return {d:d,b:b}; }
+  return null;
+}
+function validateOp(o,editId){
+  const errs=[], warns=[], st=DB.settings, a=A(o.art);
+  if(!o.date) errs.push('Укажите дату.');
+  else{
+    if(o.date>today()) errs.push('Дата в будущем. Операцию вносят в день, когда деньги прошли через кассу.');
+    if(o.date<st.startDate) errs.push('Дата раньше начала учёта '+dmy(st.startDate)+'.');
+    if(dayClosed(o.date)) errs.push('День '+dmy(o.date)+' закрыт. Сначала откройте его в разделе «Закрытие дня» с указанием причины.');
+    else if(o.date<lastClosed()) errs.push('Уже закрыт более поздний день '+dmy(lastClosed())+'. Операция задним числом изменила бы его остаток.');
+  }
+  if(editId){ const old=DB.ops.find(x=>x.id===editId); if(old&&(dayClosed(old.date)||old.date<lastClosed())) errs.push('Исходный день операции уже закрыт.'); }
+  if(!o.art) errs.push('Выберите статью.');
+  if(a.need!=='none'&&!o.party) errs.push('Выберите: '+NEED_LABEL[a.need].toLowerCase()+'.');
+  if(!(o.sum>0)) errs.push('Сумма должна быть числом больше нуля.');
+  if(String(o.note||'').trim().length<3) errs.push('Заполните «Назначение»: без него операцию потом не проверить.');
+  if(errs.length) return {errs,warns};
+  const rest=DB.ops.filter(x=>x.id!==editId), neg=firstNegative(rest.concat([o]));
+  if(neg){
+    if(o.dir==='out'&&neg.d===o.date){ const avail=DB.opening.cash+sum(rest.filter(x=>x.date<=o.date),x=>x.dir==='in'?x.sum:-x.sum); errs.push('В кассе на '+dmy(o.date)+' только '+fmt(avail)+' сум. Проверьте сумму или сначала внесите приход.'); }
+    else errs.push('После этого касса уйдёт в минус на конец '+dmy(neg.d)+': '+fmt(neg.b)+' сум. Проверьте сумму.');
+  }
+  if(o.dir==='out'&&a.kind==='supplier'){ const old=editId?DB.ops.find(x=>x.id===editId):null; const b=supBal(o.party,o.date)+(old&&old.party===o.party&&A(old.art).kind==='supplier'&&old.date<=o.date?old.sum:0); if(o.sum>b&&b>=0) warns.push('Мы должны этому поставщику '+fmt(b)+' сум, а платим '+fmt(o.sum)+'. Разница станет авансом. Если это оплата накладной, сначала внесите её в «Приход товара».'); }
+  if(a.kind==='pod_return'){ const old=editId?DB.ops.find(x=>x.id===editId):null; const b=podBal(o.party,o.date)+(old&&old.party===o.party&&A(old.art).kind==='pod_return'&&old.date<=o.date?old.sum:0); if(o.sum>b) errs.push('У сотрудника под отчётом только '+fmt(b)+' сум.'); }
+  if(editId&&String(o.why||'').trim().length<3) errs.push('Укажите причину исправления.');
+  if(o.sum>=1e9) warns.push('Сумма больше миллиарда сум. Проверьте, нет ли лишних нулей.');
+  if(o.dir==='out'&&o.sum>st.bigLimit) warns.push('Крупный расход: больше '+fmt(st.bigLimit)+' сум. Он попадёт в список на проверку финансовому директору.');
+  const dup=DB.ops.find(x=>x.id!==editId&&x.date===o.date&&x.art===o.art&&x.sum===o.sum&&(x.party||'')===(o.party||''));
+  if(dup) warns.push('Такая же операция уже есть в этот день: '+esc(dup.note)+'. Проверьте, не вносите ли второй раз.');
+  return {errs,warns};
+}
+
+/* ================= резервная копия в файл ================= */
+function idb(fn){ return new Promise((res,rej)=>{ const r=indexedDB.open('crafersfin',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>{ const tx=r.result.transaction('kv','readwrite'); const q=fn(tx.objectStore('kv')); tx.oncomplete=()=>res(q&&q.result); tx.onerror=()=>rej(tx.error); }; r.onerror=()=>rej(r.error); }); }
+let FH=null, fhOk=false, bkTimer=null, STALE=null;
+const canFile=('showSaveFilePicker' in window);
+async function initBackup(){
+  if(!canFile) return;
+  try{ FH=await idb(s=>s.get('backup')); if(FH){ const p=await FH.queryPermission({mode:'readwrite'}); fhOk=(p==='granted'); if(fhOk) await checkStale(); } }catch(e){ FH=null; }
+  render(true);
+}
+async function connectFile(){
+  try{
+    FH=await window.showSaveFilePicker({suggestedName:'Crafers Fin данные.json',types:[{description:'Данные Crafers Fin',accept:{'application/json':['.json']}}]});
+    await idb(s=>s.put(FH,'backup')); fhOk=true; await writeBackup(); toast('Файл копии подключён: каждое изменение сохраняется в него');
+  }catch(e){ if(e&&e.name!=='AbortError') toast('Не получилось подключить файл: '+e.message); }
+  render(true);
+}
+async function checkStale(){
+  try{ const txt=await (await FH.getFile()).text(); if(!txt) return; const d=JSON.parse(txt);
+    if(validCopy(d)&&d.lastBackup&&(!DB.lastBackup||d.lastBackup>DB.lastBackup)&&d.log.length>DB.log.length){ STALE=d; fhOk=false; } }catch(e){}
+}
+async function allowFile(){ try{ const p=await FH.requestPermission({mode:'readwrite'}); fhOk=(p==='granted'); if(fhOk){ await checkStale(); if(!STALE) await writeBackup(); } }catch(e){} render(true); }
+function takeStale(){ if(!STALE) return; DB=STALE; STALE=null; fhOk=true; if(!Array.isArray(DB.params)||!DB.params.length) DB.params=blank().params; DB.saleKeys={}; log('Данные взяты из файла копии','в файле были более свежие данные'); persist(); writeBackup(); render(false); toast('Данные взяты из файла копии'); }
+async function writeBackup(){
+  if(!FH||!fhOk||STALE) return false;
+  try{ DB.lastBackup=new Date().toISOString(); const w=await FH.createWritable(); await w.write(JSON.stringify(DB)); await w.close(); }
+  catch(e){ fhOk=false; renderTop(); return false; }
+  persist(); renderTop(); return true;
+}
+function scheduleBackup(){ clearTimeout(bkTimer); bkTimer=setTimeout(writeBackup,1500); }
+function downloadText(name,text,type){
+  const url=URL.createObjectURL(new Blob([text],{type:type||'application/json'}));
+  const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1000);
+}
+function downloadCopy(){ DB.lastBackup=new Date().toISOString(); persist(); downloadText('Crafers Fin копия '+today()+' '+new Date().toTimeString().slice(0,5).replace(':','-')+'.json',JSON.stringify(DB)); renderTop(); }
+function validCopy(d){
+  if(!d||d.v!==1||typeof d.settings!=='object'||typeof d.opening!=='object'||typeof d.days!=='object') return false;
+  const arrs=['ops','inv','podc','sales','suppliers','employees','cars','customArts','log','imports'];
+  if(!arrs.every(k=>Array.isArray(d[k]))) return false;
+  const idok=x=>x&&/^[A-Za-z0-9_]+$/.test(String(x.id));
+  if(![].concat(d.ops,d.inv,d.podc,d.sales,d.suppliers,d.employees,d.cars,d.customArts).every(idok)) return false;
+  if(!d.ops.every(o=>typeof o.sum==='number'&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&(o.dir==='in'||o.dir==='out')&&/^[A-Za-z0-9_]*$/.test(String(o.art))&&/^[A-Za-z0-9_]*$/.test(String(o.party||'')))) return false;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.settings.startDate)) return false;
+  const num=x=>typeof x==='number'&&isFinite(x);
+  if(!num(d.settings.bigLimit)) return false;
+  if(d.params!==undefined&&(!Array.isArray(d.params)||!d.params.length||!d.params.every(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.from)&&num(x.vatRate)&&num(x.ctax)&&num(x.cogsPct)))) return false;
+  if(!d.sales.every(x=>num(x.sum)&&num(x.ret)&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))) return false;
+  if(!d.inv.every(x=>num(x.sum)&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))||!d.podc.every(x=>num(x.sum)&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))) return false;
+  return true;
+}
+
+/* ================= состояние экрана ================= */
+const S={section:null,month:null,date:today(),form:null,editId:null,warn:null,delId:null,jf:{dir:'all',art:''},
+  imp:null,debtTab:'sup',openDay:null,view:false};
+function resetForm(){ S.form={date:today(),dir:'out',art:'',party:'',sum:'',note:'',why:''}; S.editId=null; S.warn=null; }
+resetForm();
+S.gform={date:today(),sup:'',no:'',sum:'',note:''};
+S.pform={date:today(),emp:'',art:'',party:'',sum:'',note:''};
+
+/* ================= общие куски разметки ================= */
+const TITLES={cash:'Касса',goods:'Приход товара',podc:'Закрыть подотчёт',sales:'Продажи из SalesDoc',close:'Закрытие дня',desk:'Сводка',dds:'Движение денег',pl:'Прибыли и убытки',debts:'Долги',bal:'Баланс',journal:'Журнал операций',setup:'Справочники и параметры',opening:'Вводный баланс',data:'Данные и копия'};
+const ICON={
+  cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>',
+  goods:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  podc:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  sales:'<path d="M2 6h12v10H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
+  close:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/>',
+  desk:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  dds:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
+  pl:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  debts:'<path d="M12 3v18M5 7h14"/><path d="M5 7l-3 6a3 3 0 006 0zM19 7l-3 6a3 3 0 006 0z"/>',
+  bal:'<path d="M3 9l9-5 9 5z"/><path d="M5 9v10M9.5 9v10M14.5 9v10M19 9v10M3 20h18"/>',
+  journal:'<path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  setup:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  opening:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+};
+const icon=(k,sz)=>'<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg>';
+const head=(t,sub,act)=>'<div class="head"><div><h1>'+t+'</h1>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'+(act?'<div class="actions">'+act+'</div>':'')+'</div>';
+function kpi(label,v,note,go,dark,color){ const tag=go?'button':'div'; return '<'+tag+' class="kpi'+(dark?' dark':'')+'"'+(go?' data-go="'+go+'"':'')+'><span>'+label+'</span><span class="v num">'+v+'</span>'+(note?'<small style="color:'+(color||'var(--muted)')+'">'+note+'</small>':'')+'</'+tag+'>'; }
+function opts(list,sel,ph){ return (ph?'<option value="">'+ph+'</option>':'')+list.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===sel?' selected':'')+'>'+esc(x.name)+'</option>').join(''); }
+const active=k=>DB[k].filter(x=>x.active!==false);
+function box(kind,html){ return '<div class="msg '+kind+'">'+html+'</div>'; }
+function finTable(cols,rows){
+  return '<div class="card scroll"><table class="fin"><thead><tr><th>Статья</th>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+
+    rows.map(r=>'<tr class="'+(r.kind||'indent')+(r.go?' link':'')+'"'+(r.go?' data-go="'+r.go+'"':'')+'><td>'+r.label+'</td>'+r.cells.map(c=>'<td class="num '+(c.c||'')+'">'+c.v+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table></div>';
+}
+function setupMissing(){
+  const m=[];
+  if(!DB.suppliers.length) m.push(['setup','Добавьте поставщиков']);
+  if(!DB.employees.length) m.push(['setup','Добавьте сотрудников']);
+  if(!DB.cars.length) m.push(['setup','Добавьте машины']);
+  if(!DB.opening.done) m.push(['opening','Заполните и утвердите вводный баланс']);
+  if(canFile&&!FH) m.push(['data','Подключите файл резервной копии']);
+  return m;
+}
+
+/* ================= экран: касса ================= */
+function vCash(){
+  const f=S.form, a=f.art?A(f.art):null, d=S.date;
+  const artList=arts().filter(x=>x.dir===f.dir);
+  const partySel=a&&a.need!=='none'?'<label class="fld">'+NEED_LABEL[a.need]+'<select class="qin" data-ff="party">'+opts(active(NEED[a.need]),f.party,'— выберите —')+'</select></label>':'';
+  const hint=a&&a.kind==='supplier'&&f.party?'<small class="muted">Мы должны поставщику: '+fmt(supBal(f.party,f.date||today()))+' сум</small>':
+    a&&(a.kind==='pod_return'||a.kind==='pod_issue')&&f.party?'<small class="muted">Под отчётом у сотрудника: '+fmt(podBal(f.party,f.date||today()))+' сум</small>':'';
+  let msgs='';
+  if(S.warn&&S.warn.errs.length) msgs=box('bad','<b>Операция не проведена</b>'+S.warn.errs.map(e=>'<span>'+e+'</span>').join(''));
+  else if(S.warn&&S.warn.warns.length) msgs=box('warn','<b>Проверьте перед проведением</b>'+S.warn.warns.map(e=>'<span>'+e+'</span>').join('')+'<div class="actions"><button class="btn amber" type="button" data-act="op-force">Всё верно, провести</button><button class="ghost" type="button" data-act="op-unwarn">Исправить</button></div>');
+  const form='<form class="card pad form" id="opform" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><b style="font-size:16px">'+(S.editId?'Исправление операции':'Новая операция')+'</b>'+
+    '<div class="seg"><button type="button" class="'+(f.dir==='in'?'on':'')+'" data-act="dir" data-v="in">Приход</button><button type="button" class="'+(f.dir==='out'?'on':'')+'" data-act="dir" data-v="out">Расход</button></div></div>'+
+    '<div class="form-grid"><label class="fld">Дата<input class="qin" type="date" data-ff="date" value="'+esc(f.date)+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>'+
+    '<label class="fld">Статья<select class="qin" data-ff="art">'+opts(artList,f.art,'— выберите статью —')+'</select></label>'+partySel+
+    '<label class="fld">Сумма, сум<input class="qin num" data-ff="sum" inputmode="numeric" value="'+esc(f.sum)+'" placeholder="0">'+(f.sum&&!isNaN(parseSum(f.sum))?'<small class="muted">'+fmt(parseSum(f.sum))+' сум</small>':'')+'</label></div>'+
+    '<label class="fld">Назначение<input class="qin" data-ff="note" value="'+esc(f.note)+'" placeholder="За что, по какому документу" maxlength="200"></label>'+
+    (S.editId?'<label class="fld">Причина исправления<input class="qin" data-ff="why" value="'+esc(f.why)+'" placeholder="Почему исправляем, попадёт в журнал" maxlength="200"></label>':'')+hint+msgs+
+    '<div class="actions" style="justify-content:flex-end">'+(S.editId?'<button type="button" class="ghost" data-act="op-cancel">Отменить исправление</button>':'<button type="button" class="ghost" data-act="op-clear">Очистить</button>')+'<button class="btn" type="submit">'+(S.editId?'Сохранить исправление':'Провести')+'</button></div></form>';
+  const ops=DB.ops.filter(o=>o.date===d).sort((x,y)=>(x.created<y.created?1:-1));
+  const closed=dayClosed(d);
+  const rows=ops.map(o=>{ const a=A(o.art);
+    const act=closed?'<span class="badge b-none">день закрыт</span>':(S.delId===o.id?'<span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><input class="qin c" id="delreason" placeholder="Причина удаления" style="max-width:200px"><button class="btn sm" data-act="op-del-ok" data-id="'+o.id+'">Удалить</button><button class="ghost" style="height:34px" data-act="op-del-no">Нет</button></span>':
+      '<span style="display:flex;gap:6px;justify-content:flex-end"><button class="ghost" style="height:34px;padding:0 10px" data-act="op-edit" data-id="'+o.id+'">Исправить</button><button class="ghost" style="height:34px;padding:0 10px" data-act="op-del" data-id="'+o.id+'">Удалить</button></span>');
+    return '<tr><td class="main two"><b style="font-weight:600">'+esc(a.name)+'</b>'+(partyName(o)?' · '+esc(partyName(o)):'')+'<small>'+esc(o.note)+(o.big?' · <span style="color:var(--warn)">крупный</span>':'')+'</small></td>'+
+      '<td class="r num" data-label="Приход" style="color:var(--green)">'+(o.dir==='in'?fmt(o.sum):'')+'</td><td class="r num" data-label="Расход">'+(o.dir==='out'?fmt(o.sum):'')+'</td><td class="r" data-label="">'+act+'</td></tr>'; }).join('');
+  const inS=sum(ops.filter(o=>o.dir==='in'),'sum'), outS=sum(ops.filter(o=>o.dir==='out'),'sum');
+  const miss=setupMissing();
+  return '<div class="page">'+
+    head('Касса','Единственное место ручного ввода: всё остальное считается само',
+      '<label class="chipbtn">День <input type="date" class="msel" data-act-date="1" value="'+d+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>')+
+    (STALE?box('bad','<b>В файле копии данные новее, чем в браузере</b><span>Так бывает, если память браузера переполнилась. Возьмите данные из файла, иначе последние операции потеряются.</span><div><button class="btn sm" data-act="take-stale">Взять данные из файла копии</button></div>'):'')+
+    (FH&&!fhOk&&!STALE?box('bad','<b>Копия в файл остановлена</b><span>После перезапуска браузера нужно разрешить запись в файл «'+esc(FH.name)+'». Без этого данные есть только в браузере.</span><div><button class="btn sm" data-act="bk-allow">Разрешить запись копии</button></div>'):'')+
+    (!STORE_OK?box('bad','<b>Память браузера заполнена</b><span>Данные сохраняются только в файл копии. Сообщите нам сегодня же.</span>'):'')+
+    (miss.length?box('warn','<b>Перед началом работы</b>'+miss.map(m=>'<span><button class="linkbtn" data-go="'+m[0]+'">'+m[1]+' ›</button></span>').join('')):'')+
+    '<div class="grid4">'+kpi('В кассе на начало дня',fmt(cashBefore(d)))+kpi('Приход за день','+'+fmt(inS),null,null,false,'var(--green)')+kpi('Расход за день',fmt(-outS))+kpi('В кассе сейчас',fmt(cashAt(d)),closed?'день закрыт':'день открыт','close',true)+'</div>'+
+    (closed?box('ok','<b>День '+dmy(d)+' закрыт.</b><span>Пересчёт: '+fmt(DB.days[d].count)+' сум, расхождение '+fmt(DB.days[d].diff)+' сум. Новые операции за этот день вносить нельзя.</span>'):form)+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Операции за '+dmy(d)+'</b></div>'+
+    (ops.length?'<table class="list"><thead><tr><th>Статья и назначение</th><th class="r">Приход</th><th class="r">Расход</th><th class="r"></th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="pad muted" style="padding-top:0">Операций нет</div>')+'</div></div>';
+}
+function submitOp(force){
+  const f=S.form, a=A(f.art);
+  const o={date:f.date,dir:f.dir,art:f.art,party:a.need==='none'?'':f.party,sum:parseSum(f.sum),note:String(f.note||'').trim()};
+  const v=validateOp(Object.assign({why:f.why},o),S.editId);
+  if(v.errs.length||(v.warns.length&&!force)){ S.warn=v; render(true); return; }
+  o.big=o.dir==='out'&&o.sum>DB.settings.bigLimit;
+  if(S.editId){
+    const old=DB.ops.find(x=>x.id===S.editId), before=dmy(old.date)+' · '+A(old.art).name+' · '+fmt(old.sum)+' · '+old.note;
+    Object.assign(old,o,{edited:new Date().toISOString()});
+    log('Исправлена операция','было: '+before+' → стало: '+dmy(o.date)+' · '+a.name+' · '+fmt(o.sum)+' · '+o.note+' · причина: '+String(f.why).trim());
+    toast('Исправление сохранено');
+  } else {
+    o.id=uid(); o.created=new Date().toISOString(); DB.ops.push(o);
+    log('Проведена операция',dmy(o.date)+' · '+(o.dir==='in'?'приход':'расход')+' · '+a.name+' · '+fmt(o.sum));
+    toast((o.dir==='in'?'Приход':'Расход')+' '+fmt(o.sum)+' сум проведён');
+  }
+  S.date=o.date; const keepDir=f.dir, keepDate=f.date; resetForm(); S.form.dir=keepDir; S.form.date=keepDate;
+  save(); render(true);
+}
+
+/* ================= экран: приход товара ================= */
+function vGoods(){
+  const f=S.gform, m=S.month, r=monthRange(m);
+  const list=DB.inv.filter(x=>inRange(x,r[0],r[1])).sort((a,b)=>a.date<b.date?1:-1);
+  const rows=list.map(x=>'<tr><td class="main two"><b style="font-weight:600">'+esc(nameOf('suppliers',x.sup))+'</b><small>накладная '+esc(x.no)+(x.note?' · '+esc(x.note):'')+'</small></td><td data-label="Дата">'+dmy(x.date)+'</td><td class="r num" data-label="Сумма"><b>'+fmt(x.sum)+'</b></td><td class="r" data-label="">'+'<button class="ghost" style="height:34px;padding:0 10px" data-act="inv-del" data-id="'+x.id+'">Удалить</button>'+'</td></tr>').join('');
+  return '<div class="page">'+head('Приход товара','Накладная поставщика увеличивает наш долг ему и товар на складе. Оплату вносите в «Кассу»')+
+    '<form class="card pad form" id="gform" autocomplete="off" style="display:flex;flex-direction:column;gap:14px"><div class="form-grid">'+
+    '<label class="fld">Дата накладной<input class="qin" type="date" data-gf="date" value="'+esc(f.date)+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>'+
+    '<label class="fld">Поставщик<select class="qin" data-gf="sup">'+opts(active('suppliers'),f.sup,'— выберите —')+'</select></label>'+
+    '<label class="fld">Номер накладной<input class="qin" data-gf="no" value="'+esc(f.no)+'"></label>'+
+    '<label class="fld">Сумма по накладной'+(P(today()).purchVat?', с НДС':'')+'<input class="qin num" data-gf="sum" inputmode="numeric" value="'+esc(f.sum)+'" placeholder="0"></label></div>'+
+    '<label class="fld">Комментарий, если нужно<input class="qin" data-gf="note" value="'+esc(f.note)+'" maxlength="200"></label>'+
+    (f.sup?'<small class="muted">Сейчас мы должны поставщику: '+fmt(supBal(f.sup,today()))+' сум</small>':'')+
+    '<div class="actions" style="justify-content:flex-end"><button class="btn" type="submit">Внести накладную</button></div></form>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Накладные: '+monthName(m).toLowerCase()+'</b></div>'+
+    (list.length?'<table class="list"><thead><tr><th>Поставщик</th><th>Дата</th><th class="r">Сумма, сум</th><th></th></tr></thead><tbody>'+rows+'</tbody></table><div class="foot"><span class="muted">Итого:</span><b class="num">'+fmt(sum(list,'sum'))+'</b></div>':'<div class="pad muted" style="padding-top:0">Накладных нет</div>')+'</div></div>';
+}
+function submitInv(){
+  const f=S.gform, errs=[], s=parseSum(f.sum), no=String(f.no||'').trim();
+  if(!f.date||f.date>today()||f.date<DB.settings.startDate) errs.push('Проверьте дату.');
+  if(!f.sup) errs.push('Выберите поставщика.');
+  if(!no) errs.push('Укажите номер накладной.');
+  if(!(s>0)) errs.push('Сумма должна быть больше нуля.');
+  if(no&&DB.inv.find(x=>x.sup===f.sup&&x.no.toLowerCase()===no.toLowerCase())) errs.push('Накладная '+esc(no)+' этого поставщика уже внесена.');
+  if(errs.length){ toast(errs.join(' ')); return; }
+  DB.inv.push({id:uid(),date:f.date,sup:f.sup,no:no,sum:s,note:String(f.note||'').trim(),created:new Date().toISOString()});
+  log('Накладная',dmy(f.date)+' · '+nameOf('suppliers',f.sup)+' · №'+no+' · '+fmt(s));
+  S.gform={date:f.date,sup:'',no:'',sum:'',note:''}; save(); render(true); toast('Накладная внесена');
+}
+
+/* ================= экран: закрыть подотчёт ================= */
+function vPodc(){
+  const f=S.pform, a=f.art?A(f.art):null;
+  const list=arts().filter(x=>x.kind==='direct'||x.kind==='expense');
+  const emps=active('employees').map(e=>({id:e.id,name:e.name+' · на руках '+fmt(podBal(e.id,today()))}));
+  const r=monthRange(S.month), items=DB.podc.filter(x=>inRange(x,r[0],r[1])).sort((x,y)=>x.date<y.date?1:-1);
+  const rows=items.map(x=>'<tr><td class="main two"><b style="font-weight:600">'+esc(nameOf('employees',x.emp))+'</b><small>'+esc(A(x.art).name)+(x.party?' · '+esc(nameOf('cars',x.party)):'')+' · '+esc(x.note)+'</small></td><td data-label="Дата">'+dmy(x.date)+'</td><td class="r num" data-label="Сумма"><b>'+fmt(x.sum)+'</b></td><td class="r" data-label="">'+'<button class="ghost" style="height:34px;padding:0 10px" data-act="podc-del" data-id="'+x.id+'">Удалить</button>'+'</td></tr>').join('');
+  return '<div class="page">'+head('Закрыть подотчёт чеками','Сотрудник принёс чеки: расход попадает в P&L, долг сотрудника уменьшается. Остаток денег он возвращает через «Кассу» → приход')+
+    '<form class="card pad form" id="pform" autocomplete="off" style="display:flex;flex-direction:column;gap:14px"><div class="form-grid">'+
+    '<label class="fld">Дата<input class="qin" type="date" data-pf="date" value="'+esc(f.date)+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>'+
+    '<label class="fld">Сотрудник<select class="qin" data-pf="emp">'+opts(emps,f.emp,'— выберите —')+'</select></label>'+
+    '<label class="fld">Статья расхода<select class="qin" data-pf="art">'+opts(list,f.art,'— выберите —')+'</select></label>'+
+    (a&&a.need==='car'?'<label class="fld">Машина<select class="qin" data-pf="party">'+opts(active('cars'),f.party,'— выберите —')+'</select></label>':'')+
+    '<label class="fld">Сумма по чекам, сум<input class="qin num" data-pf="sum" inputmode="numeric" value="'+esc(f.sum)+'" placeholder="0"></label></div>'+
+    '<label class="fld">Что за чеки<input class="qin" data-pf="note" value="'+esc(f.note)+'" maxlength="200"></label>'+
+    '<div class="actions" style="justify-content:flex-end"><button class="btn" type="submit">Закрыть чеками</button></div></form>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Закрыто чеками: '+monthName(S.month).toLowerCase()+'</b></div>'+
+    (items.length?'<table class="list"><thead><tr><th>Сотрудник и расход</th><th>Дата</th><th class="r">Сумма</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="pad muted" style="padding-top:0">Пока нет</div>')+'</div></div>';
+}
+function submitPodc(){
+  const f=S.pform, a=f.art?A(f.art):null, s=parseSum(f.sum), errs=[];
+  if(!f.date||f.date>today()||f.date<DB.settings.startDate) errs.push('Проверьте дату.');
+  if(!f.emp) errs.push('Выберите сотрудника.');
+  if(!a) errs.push('Выберите статью.');
+  if(a&&a.need==='car'&&!f.party) errs.push('Выберите машину.');
+  if(!(s>0)) errs.push('Сумма должна быть больше нуля.');
+  if(String(f.note||'').trim().length<3) errs.push('Опишите чеки.');
+  if(f.emp&&s>0&&s>podBal(f.emp,f.date)) errs.push('У сотрудника под отчётом только '+fmt(podBal(f.emp,f.date))+' сум.');
+  if(errs.length){ toast(errs.join(' ')); return; }
+  DB.podc.push({id:uid(),date:f.date,emp:f.emp,art:f.art,party:a.need==='car'?f.party:'',sum:s,note:String(f.note).trim(),created:new Date().toISOString()});
+  log('Подотчёт закрыт чеками',dmy(f.date)+' · '+nameOf('employees',f.emp)+' · '+fmt(s));
+  S.pform={date:f.date,emp:f.emp,art:'',party:'',sum:'',note:''}; save(); render(true); toast('Подотчёт закрыт на '+fmt(s)+' сум');
+}
+
+/* ================= экран: продажи из SalesDoc ================= */
+function cellDate(v){
+  if(v instanceof Date&&!isNaN(v)){ const d=new Date(v.getTime()-v.getTimezoneOffset()*60000); return d.toISOString().slice(0,10); }
+  if(typeof v==='number'&&v>30000&&v<80000){ const d=new Date(Math.round((v-25569)*864e5)); return d.toISOString().slice(0,10); }
+  const s=String(v==null?'':v).trim(); let m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/); if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  return null;
+}
+function vSales(){
+  const r=monthRange(S.month), list=DB.sales.filter(x=>inRange(x,r[0],r[1])).sort((a,b)=>a.date<b.date?1:-1);
+  const I=S.imp;
+  let imp='';
+  if(!I){
+    imp='<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:16px">Загрузить выгрузку из SalesDoc</b>'+
+      '<span class="muted" style="font-size:14px">Файл Excel или CSV с отгрузками. Колонки сопоставляются один раз и запоминаются. Повторно загруженные накладные система пропустит сама.</span>'+
+      (window.XLSX?'<label class="btn" style="display:inline-flex;align-items:center;width:max-content;cursor:pointer">Выбрать файл<input type="file" id="salesfile" accept=".xlsx,.xls,.csv" hidden></label>':box('bad','Библиотека чтения Excel не загрузилась. Проверьте интернет и обновите страницу.'))+'</div>';
+  } else {
+    const hdr=I.header, sel=(k,ph)=>'<select class="qin" data-map="'+k+'"><option value="">'+ph+'</option>'+hdr.map((h,i)=>'<option value="'+i+'"'+(String(I.map[k])===String(i)?' selected':'')+'>'+esc(h||('Колонка '+(i+1)))+'</option>').join('')+'</select>';
+    const p=salesPreview();
+    imp='<div class="card pad form" style="display:flex;flex-direction:column;gap:14px"><b style="font-size:16px">Файл: '+esc(I.file)+' · строк: '+I.rows.length+'</b>'+
+      '<div class="form-grid"><label class="fld">Дата отгрузки'+sel('date','— колонка —')+'</label><label class="fld">Сумма строки'+(P(today()).salesVat?', с НДС':'')+sel('sum','— колонка —')+'</label>'+
+      '<label class="fld">Тип операции, если возвраты в той же колонке'+sel('type','— нет —')+'</label></div>'+
+      '<small class="muted">Каждая строка файла учитывается отдельно, строки одной накладной суммируются. Возврат: отрицательная сумма или слово «возврат» в колонке типа. Проверьте итог дня с отчётом SalesDoc.</small>'+
+      (p.err?box('bad',p.err):
+       '<div class="scroll"><table class="list"><thead><tr><th>День</th><th class="r">Отгружено</th><th class="r">Возвраты</th><th class="r">Строк</th><th class="r">Уже загружено</th></tr></thead><tbody>'+
+       p.days.map(d=>'<tr><td class="main">'+dmy(d.date)+(d.date<DB.settings.startDate?' <small style="color:var(--warn)">раньше начала учёта, пропускается</small>':'')+(d.manual&&d.n?' <small style="color:var(--warn)">за этот день есть итог, введённый вручную: удалите его, иначе будет двойной учёт</small>':'')+(d.loaded&&d.n?' <small style="color:var(--warn)">за этот день SalesDoc уже загружен: если это повторная выгрузка того же дня, отмените, удалите день и загрузите заново — иначе задвоится</small>':'')+'</td><td class="r num" data-label="Отгружено">'+fmt(d.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(d.ret)+'</td><td class="r" data-label="Строк">'+d.n+'</td><td class="r" data-label="Уже загружено">'+d.dup+'</td></tr>').join('')+
+       '</tbody></table></div>'+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки и итоговые строки — проверьте.</small>':''))+
+      '<div class="actions" style="justify-content:flex-end"><button class="ghost" data-act="imp-cancel">Отмена</button>'+(p.err?'':p.newRows?'<button class="btn" data-act="imp-ok">Загрузить строк: '+p.newRows+'</button>':'<span class="muted" style="align-self:center">Новых строк нет: этот файл уже загружен</span>')+'</div></div>';
+  }
+  const rows=list.map(x=>'<tr><td class="main">'+dmy(x.date)+'</td><td class="r num" data-label="Отгружено">'+fmt(x.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(x.ret)+'</td><td class="r num" data-label="Итого"><b>'+fmt(x.sum-x.ret)+'</b></td><td class="r" data-label="Источник"><small class="muted">'+esc(x.src||'')+'</small></td>'+
+    '<td class="r" data-label="">'+(S.delSale===x.id?'<span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><input class="qin c" id="saledelwhy" placeholder="Причина" style="max-width:180px"><button class="btn sm" data-act="sale-del-ok" data-id="'+x.id+'">Удалить</button><button class="ghost" style="height:34px" data-act="sale-del-no">Нет</button></span>':'<button class="ghost" style="height:34px;padding:0 10px" data-act="sale-del" data-id="'+x.id+'">Удалить</button>')+'</td></tr>').join('');
+  return '<div class="page">'+head('Продажи из SalesDoc','Выручку не печатают руками: её даёт выгрузка SalesDoc. Долг клиентов считается сам: продажи минус оплаты в кассе')+imp+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b style="font-size:16px">Продажи по дням: '+monthName(S.month).toLowerCase()+'</b><button class="ghost" style="height:34px;font-size:13px" data-act="sale-manual">Ввести итог дня вручную</button></div>'+
+    (S.manual?'<form id="mform" class="pad form" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding-top:0"><label class="fld">День<input class="qin" type="date" name="d" min="'+DB.settings.startDate+'" max="'+today()+'" value="'+today()+'"></label><label class="fld">Отгружено<input class="qin num" name="s" inputmode="numeric"></label><label class="fld">Возвраты<input class="qin num" name="r" inputmode="numeric" value="0"></label><button class="btn" type="submit">Добавить</button></form>':'')+
+    (list.length?'<table class="list"><thead><tr><th>День</th><th class="r">Отгружено</th><th class="r">Возвраты</th><th class="r">Итого</th><th class="r">Источник</th><th></th></tr></thead><tbody>'+rows+'</tbody></table><div class="foot"><span class="muted">За месяц:</span><b class="num">'+fmt(sum(list,x=>x.sum-x.ret))+'</b></div>':'<div class="pad muted" style="padding-top:0">Продаж за месяц нет</div>')+'</div></div>';
+}
+function guessMap(hdr){
+  const f=re=>{ const i=hdr.findIndex(h=>re.test(String(h).toLowerCase())); return i<0?'':i; };
+  const date=hdr.findIndex(h=>/^дата/.test(String(h).toLowerCase().trim()));
+  return {date:date>=0?date:f(/дата/),sum:f(/сумм|итог|amount/),type:f(/^тип|вид опер|операц/)};
+}
+/* короткий отпечаток строки выгрузки: хранится вместо самой строки */
+function hkey(s){ let h1=0x811c9dc5, h2=5381; for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=Math.imul(h1^c,16777619)>>>0; h2=(Math.imul(h2,33)+c)>>>0; } return h1.toString(36)+h2.toString(36)+s.length.toString(36); }
+function salesPreview(){
+  const I=S.imp, m=I.map, start=DB.settings.startDate;
+  if(m.date===''||m.sum==='') return {err:'Выберите колонки с датой и суммой.'};
+  if(String(m.date)===String(m.sum)) return {err:'Дата и сумма не могут быть одной колонкой.'};
+  const days={}, seen={}, have=new Set(); let bad=0, newRows=0;
+  DB.sales.forEach(x=>(x.keys||[]).forEach(k=>have.add(k)));
+  I.rows.forEach(row=>{
+    const d=cellDate(row[m.date]), s=parseSum(row[m.sum]);
+    if(!d||isNaN(s)||s===0){ bad++; return; }
+    const isRet=s<0||(m.type!==''&&/возврат/i.test(String(row[m.type]||'')));
+    const base=d+'|'+row.map(x=>x instanceof Date?x.toISOString():String(x==null?'':x)).join('¦');
+    seen[base]=(seen[base]||0)+1;
+    const key=hkey(base+'#'+seen[base]);
+    const D=days[d]||(days[d]={date:d,sum:0,ret:0,n:0,dup:0,keys:[],manual:DB.sales.some(x=>x.date===d&&x.src==='вручную'),loaded:DB.sales.some(x=>x.date===d&&x.src==='SalesDoc')});
+    if(have.has(key)){ D.dup++; return; }
+    D.n++; if(isRet) D.ret+=Math.abs(s); else D.sum+=s; D.keys.push(key); if(d>=start) newRows++;
+  });
+  const list=Object.values(days).sort((a,b)=>a.date<b.date?-1:1);
+  if(!list.length) return {err:'В выбранных колонках не нашлось ни одной строки с датой и суммой.'};
+  return {days:list,bad,newRows};
+}
+function importSales(){
+  const p=salesPreview(); if(p.err) return;
+  let rows=0, dsum=0;
+  p.days.forEach(d=>{
+    if(d.date<DB.settings.startDate||!d.n) return;
+    let ex=DB.sales.find(x=>x.date===d.date&&x.src==='SalesDoc');
+    if(ex){ ex.sum+=d.sum; ex.ret+=d.ret; } else { ex={id:uid(),date:d.date,sum:d.sum,ret:d.ret,src:'SalesDoc',keys:[]}; DB.sales.push(ex); }
+    ex.keys=(ex.keys||[]).concat(d.keys); rows+=d.n; dsum+=d.sum-d.ret;
+  });
+  const H=S.imp.header, mm=S.imp.map;
+  DB.salesMap={date:H[mm.date],sum:H[mm.sum],type:mm.type!==''?H[mm.type]:''}; DB.imports.unshift({at:new Date().toISOString(),file:S.imp.file,rows:rows,sum:dsum});
+  log('Загрузка SalesDoc',S.imp.file+' · строк '+rows+' · '+fmt(dsum));
+  S.imp=null; save(); render(false); toast('Загружено строк: '+rows+', на сумму '+fmt(dsum)+' сум');
+}
+function readSalesFile(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(rd.result),{type:'array',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      let h=aoa.findIndex(r=>r.filter(c=>typeof c==='string'&&c.trim()).length>=2);
+      if(h<0) h=0;
+      const header=aoa[h].map(x=>String(x).trim()), rows=aoa.slice(h+1).filter(r=>r.some(c=>String(c).trim()!==''));
+      const saved=DB.salesMap, g=guessMap(header);
+      let map=g;
+      if(saved&&typeof saved.date==='string'){
+        const ix=n=>header.indexOf(n), md=ix(saved.date), ms=ix(saved.sum), mt=saved.type?ix(saved.type):-1;
+        if(md>=0&&ms>=0) map={date:md,sum:ms,type:mt>=0?mt:''};
+      }
+      S.imp={file:file.name,header,rows,map:Object.assign({date:'',sum:'',type:''},map)}; render(true);
+    }catch(e){ toast('Не удалось прочитать файл: '+e.message); }
+  };
+  rd.readAsArrayBuffer(file);
+}
+
+/* ================= экран: закрытие дня ================= */
+function vClose(){
+  const d=S.date, closed=dayClosed(d), calc=cashAt(d);
+  const past=Object.keys(DB.days).filter(k=>DB.days[k].closed).sort().reverse().slice(0,20);
+  const open=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<today()&&!dayClosed(x)).sort();
+  const rows=past.map(k=>'<tr><td class="main">'+dmy(k)+'</td><td class="r num" data-label="По учёту">'+fmt(DB.days[k].calc)+'</td><td class="r num" data-label="Пересчёт">'+fmt(DB.days[k].count)+'</td><td class="r" data-label="Расхождение"><span class="badge '+(DB.days[k].diff?'b-bad':'b-ok')+'">'+fmt(DB.days[k].diff)+'</span></td></tr>').join('');
+  return '<div class="page">'+head('Закрытие дня','Кассир пересчитывает деньги, система сравнивает с учётом. Закрытый день нельзя изменить без записи причины',
+      '<label class="chipbtn">День <input type="date" class="msel" data-act-date="1" value="'+d+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>')+
+    (open.length?box('warn','<b>Не закрыты прошедшие дни с операциями</b><span>'+open.map(x=>'<button class="linkbtn" data-act="pick-day" data-v="'+x+'">'+dmy(x)+'</button>').join(' · ')+'</span>'):'')+
+    '<div class="grid4">'+kpi('На начало дня',fmt(cashBefore(d)))+kpi('Приход','+'+fmt(sum(DB.ops.filter(o=>o.date===d&&o.dir==='in'),'sum')))+kpi('Расход',fmt(-sum(DB.ops.filter(o=>o.date===d&&o.dir==='out'),'sum')))+kpi('Должно быть в кассе',fmt(calc),null,null,true)+'</div>'+
+    (closed?box('ok','<b>День '+dmy(d)+' закрыт '+new Date(DB.days[d].at).toLocaleString('ru-RU')+'.</b><span>Пересчёт '+fmt(DB.days[d].count)+' сум, расхождение '+fmt(DB.days[d].diff)+' сум'+(DB.days[d].why?': '+esc(DB.days[d].why):'')+'.</span>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="qin c" id="reopenwhy" placeholder="Причина, почему открываем день" style="max-width:340px"><button class="ghost" data-act="day-open">Открыть день</button></div>'):
+     '<form class="card pad form" id="cform" style="display:flex;flex-direction:column;gap:14px"><div class="form-grid"><label class="fld">Фактически в кассе после пересчёта, сум<input class="qin num" name="count" inputmode="numeric" placeholder="0"></label>'+
+     '<label class="fld">Причина расхождения, если есть<input class="qin" name="why" maxlength="200"></label></div><div class="actions" style="justify-content:flex-end"><button class="btn" type="submit">Закрыть день '+dmy(d)+'</button></div></form>')+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Закрытые дни</b></div>'+(past.length?'<table class="list"><thead><tr><th>День</th><th class="r">По учёту</th><th class="r">Пересчёт</th><th class="r">Расхождение</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="pad muted" style="padding-top:0">Пока нет</div>')+'</div></div>';
+}
+
+/* ================= отчёты ================= */
+function repEnd(){ const r=monthRange(S.month), t=today(); return r[1]>t?t:r[1]; }
+function repStart(){ const r=monthRange(S.month), s=DB.settings.startDate; return r[0]<s?s:r[0]; }
+function vDesk(){
+  const t=today(), m=S.month, f=repStart(), e=repEnd(), p=plCalc(f,e), b=balance(e), bt=balance(t);
+  const alerts=[];
+  if(FH&&!fhOk) alerts.push(['Копия в файл остановлена: нажмите «Разрешить» в разделе «Касса» или «Данные»','Бывает после перезапуска браузера','#C0621F','data']);
+  if(!STORE_OK) alerts.push(['Память браузера заполнена','Данные сохраняются только в файл копии','#C0621F','data']);
+  setupMissing().forEach(x=>alerts.push([x[1],'Настройка','var(--amber)',x[0]]));
+  const open=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<t&&!dayClosed(x));
+  if(open.length) alerts.push(['Не закрыты дни: '+open.map(dmy).join(', '),'Пересчитайте кассу и закройте','#C0621F','close']);
+  const diffs=Object.keys(DB.days).filter(k=>k>=f&&k<=e&&DB.days[k].diff);
+  if(diffs.length) alerts.push(['Расхождения кассы в '+diffs.length+' дн. на '+fmt(sum(diffs,k=>DB.days[k].diff))+' сум','Причины — в «Закрытии дня»','#C0621F','close']);
+  const big=DB.ops.filter(o=>o.big&&o.date>=f&&o.date<=e);
+  if(big.length) alerts.push(['Крупные расходы за месяц: '+big.length+' на '+fmt(sum(big,'sum'))+' сум','Проверьте в журнале','var(--amber)','journal']);
+  const lastSale=DB.sales.map(x=>x.date).sort().pop();
+  if(!lastSale) alerts.push(['Продажи из SalesDoc ещё не загружены','Без них нет выручки и долга клиентов','var(--amber)','sales']);
+  else if(lastSale<t) alerts.push(['Последние продажи загружены за '+dmy(lastSale),'Загрузите выгрузку за следующие дни','var(--muted)','sales']);
+  if(bt.goods<0) alerts.push(['Товар на складе ушёл в минус: '+fmt(bt.goods)+' сум','Проверьте накладные и процент себестоимости в параметрах','#C0621F','goods']);
+  if(Math.abs(b.eq-b.eqCalc)>1) alerts.push(['Баланс не сходится на '+fmt(b.eq-b.eqCalc)+' сум','Сообщите разработчику','#C0621F','bal']);
+  const days=monthRange(m)[1].slice(8,10), bars=[];
+  for(let i=1;i<=+days;i++){ const d=m+'-'+String(i).padStart(2,'0'); bars.push(d<f||d>t?null:cashAt(d)); }
+  const mx=Math.max(1,...bars.filter(x=>x!==null).map(Math.abs));
+  const chart='<div class="chart" style="gap:3px">'+bars.map((v,i)=>'<div class="col" title="'+(i+1)+': '+(v===null?'—':fmt(v))+'"><i style="width:100%;height:'+(v===null?0:Math.max(2,Math.round(Math.abs(v)/mx*180)))+'px;background:'+(v!==null&&v<0?'var(--warn)':'var(--green)')+'"></i></div>').join('')+'</div>';
+  return '<div class="page">'+head('Сводка: '+monthName(m).toLowerCase(),'Всё посчитано из кассы, накладных и выгрузки SalesDoc. Суммы в сумах')+
+    '<div class="grid4">'+kpi('В кассе сейчас',fmt(bt.cash),null,'cash')+kpi('Выручка без НДС за месяц',fmt(p.N0),'отгружено '+fmt(p.S),'pl')+kpi('Чистая прибыль, расчётно',fmt(p.np),'себестоимость '+P(f).cogsPct+'% от выручки','pl')+kpi('Нам должны клиенты',fmt(bt.clients),'мы должны поставщикам '+fmt(bt.supDebt),'debts',true)+'</div>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:14px"><b style="font-size:17px">Требует внимания</b></div>'+
+    (alerts.length?alerts.map(x=>'<button class="task" data-go="'+x[3]+'"><span class="dot" style="background:'+x[2]+'"></span><span class="t"><span>'+x[0]+'</span><small>'+x[1]+'</small></span><span class="go">Открыть ›</span></button>').join(''):'<div class="pad muted" style="padding-top:0">Всё в порядке</div>')+'</div>'+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:17px">Касса на конец каждого дня</b>'+chart+'<div class="months"><span>1</span><span style="text-align:right">'+(+days)+'</span></div></div></div>';
+}
+function weekIdx(d){ const x=+d.slice(8,10); return x<=7?0:x<=14?1:x<=21?2:3; }
+function vDds(){
+  const f=repStart(), e=repEnd(), ops=DB.ops.filter(o=>inRange(o,f,e)), start=cashBefore(f);
+  const W=['1–7','8–14','15–21','22–'+monthRange(S.month)[1].slice(8,10)];
+  const group=dir=>{ const m={}; ops.filter(o=>o.dir===dir).forEach(o=>{ const r=m[o.art]||(m[o.art]=[0,0,0,0]); r[weekIdx(o.date)]+=o.sum; }); return m; };
+  const gi=group('in'), go=group('out'), tin=[0,0,0,0], tout=[0,0,0,0];
+  Object.values(gi).forEach(r=>r.forEach((v,i)=>tin[i]+=v)); Object.values(go).forEach(r=>r.forEach((v,i)=>tout[i]+=v));
+  const cells=(r,neg)=>r.map(v=>({v:fmt(neg?-v:v)})).concat([{v:fmt((neg?-1:1)*sum(r,x=>x))}]);
+  const st=[start], en=[]; for(let i=0;i<4;i++){ en[i]=st[i]+tin[i]-tout[i]; if(i<3) st[i+1]=en[i]; }
+  const blank=[{v:''},{v:''},{v:''},{v:''},{v:''}];
+  const rows=[{kind:'subt',label:'Касса на начало',cells:st.map(v=>({v:fmt(v)})).concat([{v:fmt(start)}])},{kind:'hd',label:'Поступления',cells:blank}]
+    .concat(Object.keys(gi).map(id=>({label:esc(A(id).name),cells:cells(gi[id])})))
+    .concat([{kind:'subt',label:'Итого поступления',cells:cells(tin)},{kind:'hd',label:'Выплаты',cells:blank}])
+    .concat(Object.keys(go).map(id=>({label:esc(A(id).name),cells:cells(go[id],true)})))
+    .concat([{kind:'subt',label:'Итого выплаты',cells:cells(tout,true)},{kind:'grand',label:'Касса на конец',cells:en.map(v=>({v:fmt(v)})).concat([{v:fmt(cashAt(e))}])}]);
+  return '<div class="page">'+head('Движение денег: '+monthName(S.month).toLowerCase(),'Касса, по неделям месяца, сум')+
+    '<div class="grid4">'+kpi('Касса на начало',fmt(start))+kpi('Поступило','+'+fmt(sum(tin,x=>x)))+kpi('Выплачено',fmt(-sum(tout,x=>x)))+kpi('Касса на '+dmy(e),fmt(cashAt(e)),null,null,true)+'</div>'+
+    finTable(W.concat(['Месяц']),rows)+'</div>';
+}
+function vPl(){
+  const f=repStart(), e=repEnd(), p=plCalc(f,e), st=P(f), n=x=>({v:fmt(x)}), pc=x=>({v:p.N0?(Math.round(x/p.N0*1000)/10).toString().replace('.',',')+'%':'—',c:'p'});
+  const L=(label,v,kind,neg,go)=>({label,kind:kind||'indent',go,cells:[n(neg?-v:v),pc(v)]});
+  const lines=id=>({label:esc(A(id).name),kind:'indent',cells:[n(-p.lines[id]),pc(p.lines[id])]});
+  const directIds=Object.keys(p.lines).filter(id=>A(id).kind==='direct'), expIds=Object.keys(p.lines).filter(id=>A(id).kind==='expense');
+  const rows=[L('Отгружено по SalesDoc'+(st.salesVat?', с НДС':''),p.G,'subt',0,'sales'),L('Возвраты',p.R,'indent',1),L('НДС '+st.vatRate+'%',p.vat,'indent',1),L('Выручка без НДС',p.N0,'subt'),L('Бонусы и акции клиентам',p.bonus,'indent',1),L('Чистая выручка',p.net,'total'),
+    {kind:'hd',label:'Прямые расходы',cells:[{v:''},{v:''}]},L('Себестоимость товара: '+st.cogsPct+'% от выручки без НДС',p.cogs,'indent',1)]
+    .concat(directIds.map(lines)).concat([L('Зарплата агентов и доставщиков, выплачено',p.salD,'indent',1,'journal'),L('Валовая прибыль',p.gross,'total'),{kind:'hd',label:'Операционные расходы',cells:[{v:''},{v:''}]},L('Зарплата офиса, выплачено',p.salO,'indent',1,'journal'),L('Налоги с зарплаты',p.ptax,'indent',1)])
+    .concat(expIds.map(lines)).concat([L('Итого операционные расходы',p.opex,'subt',1),L('EBITDA',p.ebitda,'total'),L('Прочие поступления',p.otherIn,'indent'),L('Прибыль до налога',p.pbt,'subt'),L('Налог на прибыль '+st.ctax+'%, расчётно',p.ctax,'indent',1),L('Чистая прибыль',p.np,'grand')]);
+  return '<div class="page">'+head('Прибыли и убытки: '+monthName(S.month).toLowerCase(),'С '+dmy(f)+' по '+dmy(e)+', сум. Выручка — из SalesDoc, расходы — из кассы и подотчёта')+
+    box('warn','<b>Две упрощённые строки версии 0</b><span>Себестоимость считается процентом от выручки ('+st.cogsPct+'%, меняется в параметрах) до учёта товара в штуках. Зарплата — по выплатам из кассы; начисления по KPI появятся в версии 1.</span>')+
+    '<div class="grid4">'+kpi('Выручка без НДС',fmt(p.N0),'НДС '+fmt(p.vat))+kpi('Валовая прибыль',fmt(p.gross))+kpi('EBITDA',fmt(p.ebitda))+kpi('Чистая прибыль',fmt(p.np),null,null,true)+'</div>'+
+    finTable(['Сумма','% выручки'],rows)+'</div>';
+}
+function vDebts(){
+  const t=today(), tab=S.debtTab, bt=balance(t);
+  let th, rows, foot;
+  if(tab==='sup'){
+    const ids={}; DB.suppliers.forEach(s=>ids[s.id]=1); Object.keys(DB.opening.sup).forEach(id=>ids[id]=1);
+    const r=monthRange(S.month);
+    const data=Object.keys(ids).map(id=>({id,name:nameOf('suppliers',id),start:supBal(id,addDay(r[0],-1)),inv:sum(DB.inv.filter(x=>x.sup===id&&inRange(x,r[0],r[1])),'sum'),paid:sum(DB.ops.filter(o=>o.party===id&&A(o.art).kind==='supplier'&&inRange(o,r[0],r[1])),'sum'),now:supBal(id,t)})).filter(x=>x.start||x.inv||x.paid||x.now);
+    th='<th>Поставщик</th><th class="r">На начало месяца</th><th class="r">Накладные</th><th class="r">Оплачено</th><th class="r">Сейчас</th>';
+    rows=data.map(x=>'<tr><td class="main"><b style="font-weight:600">'+esc(x.name)+'</b></td><td class="r num" data-label="На начало">'+fmt(x.start)+'</td><td class="r num" data-label="Накладные">'+fmt(x.inv)+'</td><td class="r num" data-label="Оплачено">'+fmt(-x.paid)+'</td><td class="r num" data-label="Сейчас"><b>'+fmt(x.now)+'</b>'+(x.now<0?' <span class="badge b-none">аванс</span>':'')+'</td></tr>').join('');
+    foot='<span class="muted">Мы должны поставщикам:</span><b class="num">'+fmt(bt.supDebt)+'</b><span class="muted">авансы выданы:</span><b class="num">'+fmt(bt.supAdv)+'</b>';
+  } else if(tab==='cli'){
+    const r=monthRange(S.month), f=r[0]<DB.settings.startDate?DB.settings.startDate:r[0], e=r[1]>t?t:r[1], p=plCalc(f,e), start=balance(addDay(f,-1)).clients, paid=sum(DB.ops.filter(o=>A(o.art).kind==='client'&&inRange(o,f,e)),'sum');
+    th='<th>Все клиенты общей суммой</th><th class="r">На начало</th><th class="r">Отгружено минус возвраты</th><th class="r">Оплатили в кассу</th><th class="r">На '+dmy(e)+'</th>';
+    rows='<tr><td class="main"><b style="font-weight:600">'+monthName(S.month)+'</b></td><td class="r num" data-label="На начало">'+fmt(start)+'</td><td class="r num" data-label="Отгружено">'+fmt(p.rec)+'</td><td class="r num" data-label="Оплатили">'+fmt(-paid)+'</td><td class="r num" data-label="На конец"><b>'+fmt(start+p.rec-paid)+'</b></td></tr>';
+    foot='<span class="muted">Сроки и лимиты по каждому клиенту — в SalesDoc. Сейчас клиенты должны:</span><b class="num">'+fmt(bt.clients)+'</b>';
+  } else {
+    th='<th>Сотрудник</th><th class="r">Под отчётом сейчас</th>';
+    const ids={}; DB.employees.forEach(e=>ids[e.id]=1); Object.keys(DB.opening.pod).forEach(id=>ids[id]=1);
+    rows=Object.keys(ids).map(id=>({id,b:podBal(id,t)})).filter(x=>x.b).map(x=>'<tr><td class="main"><b style="font-weight:600">'+esc(nameOf('employees',x.id))+'</b></td><td class="r num" data-label="Под отчётом"><b>'+fmt(x.b)+'</b></td></tr>').join('');
+    foot='<span class="muted">Всего под отчётом:</span><b class="num">'+fmt(bt.pod)+'</b>';
+  }
+  const tabs=[['sup','Мы должны поставщикам'],['cli','Клиенты должны нам'],['pod','Деньги под отчётом']].map(x=>'<button class="chip'+(tab===x[0]?' on':'')+'" data-act="dtab" data-v="'+x[0]+'">'+x[1]+'</button>').join('');
+  return '<div class="page">'+head('Долги','Считаются сами: вводный баланс, накладные, продажи и операции кассы, сум')+
+    '<div class="grid4">'+kpi('Мы должны поставщикам',fmt(bt.supDebt))+kpi('Авансы поставщикам',fmt(bt.supAdv))+kpi('Клиенты должны нам',fmt(bt.clients))+kpi('Под отчётом',fmt(bt.pod),null,null,true)+'</div>'+
+    '<div class="chips">'+tabs+'</div><div class="card" style="overflow:hidden"><table class="list"><thead><tr>'+th+'</tr></thead><tbody>'+(rows||'<tr><td class="main muted">Нет данных</td></tr>')+'</tbody></table><div class="foot" style="flex-wrap:wrap">'+foot+'</div></div></div>';
+}
+function addDay(iso,n){ const d=new Date(iso+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function vBal(){
+  const s=DB.settings.startDate, e=repEnd(), b0=balance(addDay(s,-1)), b=balance(e), n=x=>({v:fmt(x)});
+  const R=(label,k,kind,go)=>({label,kind:kind||'indent',go,cells:[n(b0[k]),n(b[k])]});
+  const rows=[{kind:'hd',label:'Активы',cells:[{v:''},{v:''}]},R('Касса','cash','indent','cash'),R('Клиенты должны нам','clients','indent','debts'),R('Товар на складе, расчётно','goods','indent','goods'),R('Деньги под отчётом','pod','indent','debts'),R('Авансы поставщикам','supAdv','indent','debts'),R('Основные средства','fixed'),R('Итого активы','A','total'),
+    {kind:'hd',label:'Обязательства и капитал',cells:[{v:''},{v:''}]},R('Мы должны поставщикам','supDebt','indent','debts'),R('Займы','loans'),R('НДС к уплате (минус — к возмещению)','vat'),R('Налог на прибыль к уплате','ctax'),R('Итого обязательства','L','subt'),R('Собственный капитал','eq','total'),
+    {kind:'grand',label:'Проверка: капитал = вводный + прибыль ± вклады учредителей',cells:[{v:''},{v:Math.abs(b.eq-b.eqCalc)<=1?'сходится ✓':'расхождение '+fmt(b.eq-b.eqCalc)}]}];
+  return '<div class="page">'+head('Баланс','На начало учёта и на '+dmy(e)+', сум. Считается автоматически')+finTable(['Вводный, '+dmy(s),'На '+dmy(e)],rows)+'</div>';
+}
+function vJournal(){
+  const r=monthRange(S.month), jf=S.jf;
+  let list=DB.ops.filter(o=>inRange(o,r[0],r[1]));
+  if(jf.dir!=='all') list=list.filter(o=>o.dir===jf.dir);
+  if(jf.art) list=list.filter(o=>o.art===jf.art);
+  list.sort((a,b)=>a.date===b.date?(a.created<b.created?1:-1):(a.date<b.date?1:-1));
+  const rows=list.map(o=>'<tr><td class="main two"><b style="font-weight:600">'+esc(A(o.art).name)+'</b>'+(partyName(o)?' · '+esc(partyName(o)):'')+'<small>'+esc(o.note)+(o.edited?' · исправлено':'')+'</small></td><td data-label="Дата">'+dmy(o.date)+'</td><td class="r num" data-label="Приход" style="color:var(--green)">'+(o.dir==='in'?fmt(o.sum):'')+'</td><td class="r num" data-label="Расход">'+(o.dir==='out'?fmt(o.sum):'')+(o.big?' <span class="badge b-wait">крупный</span>':'')+'</td></tr>').join('');
+  return '<div class="page">'+head('Журнал операций: '+monthName(S.month).toLowerCase(),'Все операции кассы. Исправлять и удалять — в «Кассе» за нужный день','<button class="ghost" data-act="xlsx">Выгрузить в Excel</button>')+
+    '<div class="card pad" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end"><div class="seg"><button class="'+(jf.dir==='all'?'on':'')+'" data-act="jdir" data-v="all">Все</button><button class="'+(jf.dir==='in'?'on':'')+'" data-act="jdir" data-v="in">Приход</button><button class="'+(jf.dir==='out'?'on':'')+'" data-act="jdir" data-v="out">Расход</button></div>'+
+    '<label class="fld" style="min-width:240px">Статья<select class="qin" id="jart">'+opts(arts(),jf.art,'Все статьи')+'</select></label></div>'+
+    '<div class="card" style="overflow:hidden">'+(list.length?'<table class="list"><thead><tr><th>Статья и назначение</th><th>Дата</th><th class="r">Приход</th><th class="r">Расход</th></tr></thead><tbody>'+rows+'</tbody></table><div class="foot"><span class="muted">Приход:</span><b class="num">'+fmt(sum(list.filter(o=>o.dir==='in'),'sum'))+'</b><span class="muted">Расход:</span><b class="num">'+fmt(sum(list.filter(o=>o.dir==='out'),'sum'))+'</b></div>':'<div class="pad muted">Операций нет</div>')+'</div></div>';
+}
+
+/* ================= настройка ================= */
+function vSetup(){
+  const st=Object.assign({},DB.settings,P(today())), hasData=DB.ops.length||DB.sales.length||DB.inv.length;
+  const lst=(k,title,extra)=>'<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b style="font-size:16px">'+title+' <span class="muted" style="font-weight:400">· '+active(k).length+'</span></b>'+
+    '<div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto">'+(DB[k].length?DB[k].map(x=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;'+(x.active===false?'opacity:.5':'')+'"><span>'+esc(x.name)+(x.group?' <small class="muted">· '+(x.group==='direct'?'агент/доставщик':'офис')+'</small>':'')+'</span><button class="ghost" style="height:30px;padding:0 10px;font-size:12px" data-act="toggle" data-k="'+k+'" data-id="'+x.id+'">'+(x.active===false?'Вернуть':'Скрыть')+'</button></div>').join(''):'<span class="muted" style="font-size:14px">Пусто</span>')+'</div>'+
+    '<textarea class="qin" rows="3" id="add-'+k+'" placeholder="Добавить: по одному на строку"></textarea>'+(extra||'')+'<div><button class="btn sm" data-act="add" data-k="'+k+'">Добавить</button></div></div>';
+  const custom='<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b style="font-size:16px">Своя статья расхода</b><div class="form-grid"><label class="fld">Название<input class="qin" id="ca-name"></label><label class="fld">Куда в P&L<select class="qin" id="ca-kind"><option value="expense">Операционный расход</option><option value="direct">Прямой расход</option></select></label><label class="fld">Нужна машина<select class="qin" id="ca-car"><option value="none">Нет</option><option value="car">Да</option></select></label></div><div><button class="btn sm" data-act="add-art">Добавить статью</button></div>'+
+    (DB.customArts.length?'<span class="muted" style="font-size:13px">Добавлены: '+DB.customArts.map(a=>esc(a.name)).join(', ')+'</span>':'')+'</div>';
+  const par='<form class="card pad form" id="sform" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:16px">Параметры учёта</b><div class="form-grid">'+
+    '<label class="fld">Начало учёта<input class="qin" type="date" name="startDate" value="'+st.startDate+'"'+(DB.ops.length?' disabled':'')+'></label>'+
+    '<label class="fld">НДС, %<input class="qin" name="vatRate" inputmode="numeric" value="'+st.vatRate+'"></label>'+
+    '<label class="fld">Налог на прибыль, %<input class="qin" name="ctax" inputmode="numeric" value="'+st.ctax+'"></label>'+
+    '<label class="fld">Себестоимость, % от выручки без НДС<input class="qin" name="cogsPct" inputmode="decimal" value="'+st.cogsPct+'"></label>'+
+    '<label class="fld">Крупный расход, от сум<input class="qin" name="bigLimit" inputmode="numeric" value="'+st.bigLimit+'"></label>'+
+    '<label class="fld">Суммы SalesDoc с НДС<select class="qin" name="salesVat"><option value="1"'+(st.salesVat?' selected':'')+'>Да</option><option value="0"'+(!st.salesVat?' selected':'')+'>Нет, НДС не выделяем</option></select></label>'+
+    '<label class="fld">Накладные поставщиков с НДС<select class="qin" name="purchVat"><option value="1"'+(st.purchVat?' selected':'')+'>Да</option><option value="0"'+(!st.purchVat?' selected':'')+'>Нет</option></select></label></div>'+
+    (hasData?'<small class="muted">НДС, налог и себестоимость меняются с '+dmy(today().slice(0,7)+'-01')+': прошлые месяцы считаются по прежним значениям.</small>':'')+'<div class="actions" style="justify-content:flex-end"><button class="btn" type="submit">Сохранить параметры</button></div></form>';
+  return '<div class="page">'+head('Справочники и параметры','Заполняет финансовый директор один раз. Кассир выбирает только из этих списков')+par+
+    '<div class="split3">'+lst('suppliers','Поставщики')+lst('employees','Сотрудники','<label class="fld">Группа для новых<select class="qin" id="emp-group"><option value="direct">Агенты и доставщики — прямые расходы</option><option value="office">Офис — операционные расходы</option></select></label>')+lst('cars','Машины')+'</div>'+custom+'</div>';
+}
+function vOpening(){
+  const O=DB.opening, dis=O.done?' disabled':'';
+  const inp=(name,v,label)=>'<label class="fld">'+label+'<input class="qin num" name="'+name+'" inputmode="numeric" value="'+(v||0)+'"'+dis+'></label>';
+  const sup=active('suppliers').map(s=>inp('sup:'+s.id,O.sup[s.id],esc(s.name)+' (минус — аванс)')).join('');
+  const pod=active('employees').map(e=>inp('pod:'+e.id,O.pod[e.id],esc(e.name))).join('');
+  const eq=openingEquity();
+  return '<div class="page">'+head('Вводный баланс на '+dmy(DB.settings.startDate),'Остатки на утро первого дня учёта. Историю из Excel не переносим')+
+    (O.done?box('ok','<b>Вводный баланс утверждён.</b><span>Изменение пишется в журнал с причиной.</span><div style="display:flex;gap:8px;flex-wrap:wrap"><input class="qin c" id="openwhy" placeholder="Причина изменения" style="max-width:340px"><button class="ghost" data-act="open-unlock">Изменить</button></div>'):'')+
+    '<form class="card pad form" id="oform" style="display:flex;flex-direction:column;gap:14px"><b style="font-size:16px">Деньги, товар, клиенты</b><div class="form-grid">'+
+    inp('cash',O.cash,'Касса: пересчёт на утро')+inp('clients',O.clients,'Клиенты должны нам, из SalesDoc')+inp('goods',O.goods,'Товар на складе, без НДС')+inp('fixed',O.fixed,'Основные средства')+inp('loans',O.loans,'Займы полученные')+inp('vat',O.vat,'НДС к уплате')+inp('ctax',O.ctax,'Налог на прибыль к уплате')+'</div>'+
+    '<b style="font-size:16px">Долги поставщикам</b>'+(sup?'<div class="form-grid">'+sup+'</div>':'<span class="muted">Сначала добавьте поставщиков в справочниках</span>')+
+    '<b style="font-size:16px">Под отчётом у сотрудников</b>'+(pod?'<div class="form-grid">'+pod+'</div>':'<span class="muted">Сначала добавьте сотрудников</span>')+
+    '<div class="msg ok"><b>Собственный капитал на старт: '+fmt(eq)+' сум</b><span>Считается сам: активы минус обязательства.</span></div>'+
+    (O.done?'':'<div class="actions" style="justify-content:flex-end"><button class="ghost" type="submit" name="act" value="save">Сохранить черновик</button><button class="btn" type="submit" name="act" value="done">Утвердить вводный баланс</button></div>')+'</form></div>';
+}
+function vData(){
+  const used=new Blob([localStorage.getItem(KEY)||'']).size;
+  return '<div class="page">'+head('Данные и резервная копия','Данные хранятся только на этом компьютере. Копия в файл защищает от потери')+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:16px">Автоматическая копия в файл</b>'+
+    (!canFile?box('warn','Этот браузер не умеет сохранять в файл автоматически. Откройте платформу в Chrome или Edge, или скачивайте копию вручную каждый день.'):
+      FH?(fhOk?box('ok','<b>Копия сохраняется в файл «'+esc(FH.name)+'»</b><span>Последнее сохранение: '+(DB.lastBackup?new Date(DB.lastBackup).toLocaleString('ru-RU'):'—')+'. Положите файл в папку OneDrive или Google Диска — будет копия в облаке, и руководитель сможет открыть её у себя.</span>'):
+        box('warn','<b>Браузер просит разрешения на запись в файл «'+esc(FH.name)+'».</b><div><button class="btn sm" data-act="bk-allow">Разрешить</button></div>')):
+      '<span class="muted" style="font-size:14px">Только на компьютере кассира. Выберите файл в папке, которая синхронизируется с OneDrive или Google Диском. После этого каждое изменение сохраняется в него само. Руководителю файл не подключать: он только «Открывает копию».</span><div><button class="btn" data-act="bk-connect">Подключить файл копии</button></div>')+'</div>'+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:16px">Вручную</b><div class="actions"><button class="ghost" data-act="bk-download">Скачать копию</button><label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer">Открыть копию<input type="file" id="restorefile" accept=".json" hidden></label><button class="ghost" data-act="xlsx">Выгрузить всё в Excel</button></div>'+
+    '<span class="muted" style="font-size:13px">«Открыть копию» заменяет данные на этом компьютере данными из файла. Так руководитель смотрит аналитику у себя. Занято в браузере: '+Math.round(used/1024)+' КБ из примерно 5 000.</span></div>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Журнал изменений</b></div><table class="list"><tbody>'+DB.log.slice(0,40).map(l=>'<tr><td class="main two">'+esc(l.what)+'<small>'+esc(l.detail)+'</small></td><td class="r" data-label="Когда"><small class="muted">'+new Date(l.at).toLocaleString('ru-RU')+'</small></td></tr>').join('')+'</tbody></table></div>'+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:10px;border-color:var(--warn-soft)"><b style="font-size:16px;color:var(--warn)">Удалить все данные на этом компьютере</b><span class="muted" style="font-size:13px">Только если данные перенесены. Введите слово УДАЛИТЬ.</span><div style="display:flex;gap:8px;flex-wrap:wrap"><input class="qin c" id="wipe" style="max-width:200px"><button class="ghost" data-act="wipe">Удалить</button></div></div></div>';
+}
+function exportXlsx(){
+  if(!window.XLSX){ toast('Библиотека Excel не загрузилась'); return; }
+  const wb=XLSX.utils.book_new();
+  const add=(name,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name);
+  add('Касса',[['Дата','Приход/расход','Статья','Контрагент','Сумма','Назначение','Крупный','Исправлено']].concat(DB.ops.slice().sort((a,b)=>a.date<b.date?-1:1).map(o=>[dmy(o.date),o.dir==='in'?'приход':'расход',A(o.art).name,partyName(o),o.sum,o.note,o.big?'да':'',o.edited?'да':''])));
+  add('Накладные',[['Дата','Поставщик','Номер','Сумма','Комментарий']].concat(DB.inv.map(x=>[dmy(x.date),nameOf('suppliers',x.sup),x.no,x.sum,x.note])));
+  add('Подотчёт чеками',[['Дата','Сотрудник','Статья','Машина','Сумма','Чеки']].concat(DB.podc.map(x=>[dmy(x.date),nameOf('employees',x.emp),A(x.art).name,x.party?nameOf('cars',x.party):'',x.sum,x.note])));
+  add('Продажи',[['Дата','Отгружено','Возвраты','Источник']].concat(DB.sales.slice().sort((a,b)=>a.date<b.date?-1:1).map(x=>[dmy(x.date),x.sum,x.ret,x.src])));
+  add('Закрытие дней',[['День','По учёту','Пересчёт','Расхождение','Причина']].concat(Object.keys(DB.days).sort().map(k=>[dmy(k),DB.days[k].calc,DB.days[k].count,DB.days[k].diff,DB.days[k].why||''])));
+  const f=repStart(), e=repEnd(), p=plCalc(f,e);
+  add('P&L '+S.month,[['Статья','Сумма'],['Выручка без НДС',Math.round(p.N0)],['НДС',Math.round(p.vat)],['Бонусы и акции',-p.bonus],['Себестоимость',-Math.round(p.cogs)],['Прямые расходы',-p.direct],['Зарплата агентов и доставщиков',-p.salD],['Валовая прибыль',Math.round(p.gross)],['Операционные расходы',-p.opex],['EBITDA',Math.round(p.ebitda)],['Налог на прибыль',-Math.round(p.ctax)],['Чистая прибыль',Math.round(p.np)]]);
+  XLSX.writeFile(wb,'Crafers Fin '+today()+'.xlsx');
+}
+
+/* ================= навигация ================= */
+const VIEWS={cash:vCash,goods:vGoods,podc:vPodc,sales:vSales,close:vClose,desk:vDesk,dds:vDds,pl:vPl,debts:vDebts,bal:vBal,journal:vJournal,setup:vSetup,opening:vOpening,data:vData};
+const GROUPS=[['Кассир',['cash','goods','podc','sales','close']],['Аналитика',['desk','dds','pl','debts','bal','journal']],['Настройка',['setup','opening','data']]];
+const TABS=['cash','close','desk','pl'], SHORT={cash:'Касса',close:'Закрыть день',desk:'Сводка',pl:'P&L'};
+const MORE=['goods','podc','sales','dds','debts','bal','journal','setup','opening','data'];
+function renderTop(){
+  const b=$('#bkbtn'); if(!b) return;
+  b.innerHTML=!canFile?'Копия: вручную':FH&&fhOk?'Копия: '+(DB.lastBackup?new Date(DB.lastBackup).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'—'):'<span style="color:var(--warn)">Копия не настроена</span>';
+  const ms=$('#month'), s=DB.settings.startDate, t=today(), list=monthsBetween(s,t>s?t:s).reverse();
+  if(!S.month||list.indexOf(S.month)<0) S.month=list[0];
+  ms.innerHTML=list.map(m=>'<option value="'+m+'"'+(m===S.month?' selected':'')+'>'+monthName(m)+'</option>').join('');
+  $('#sidebox').innerHTML='<span>В кассе сейчас</span><b class="num">'+fmt(cashAt(t))+' сум</b><span>'+(dayClosed(t)?'сегодня день закрыт':'сегодня день открыт')+'</span>';
+}
+function renderNav(){
+  const miss=setupMissing().length, open=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<today()&&!dayClosed(x)).length;
+  const pill=k=>k==='setup'&&miss?'<span class="pill">'+miss+'</span>':k==='close'&&open?'<span class="pill">'+open+'</span>':'';
+  const btn=k=>'<button class="nav'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k)+TITLES[k]+pill(k)+'</button>';
+  $('#sidenav').innerHTML=GROUPS.map(g=>'<div class="group">'+g[0]+'</div>'+g[1].map(btn).join('')).join('');
+  $('#tabs').innerHTML=TABS.map(k=>'<button class="tab'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k,22)+SHORT[k]+pill(k)+'</button>').join('')+'<button class="tab'+(MORE.indexOf(S.section)>=0?' on':'')+'" data-act="more">'+icon('more',22)+'Ещё</button>';
+  $('#sheet').innerHTML='<div class="grab"></div>'+MORE.map(btn).join('');
+}
+function render(keep){
+  const m=$('#main'), y=m.scrollTop, act=document.activeElement, key=act&&(act.getAttribute('data-ff')||act.getAttribute('data-gf')||act.getAttribute('data-pf')), pos=act&&act.selectionStart;
+  renderTop();
+  m.innerHTML=VIEWS[S.section]();
+  $('#crumb').textContent=TITLES[S.section]; document.title='Crafers Fin · '+TITLES[S.section];
+  renderNav(); m.scrollTop=keep?y:0;
+  if(key){ const el=m.querySelector('[data-ff="'+key+'"],[data-gf="'+key+'"],[data-pf="'+key+'"]'); if(el){ el.focus(); try{ if(pos!=null) el.setSelectionRange(pos,pos); }catch(e){} } }
+}
+function go(k){
+  $('#app').classList.remove('more-open');
+  if(!VIEWS[k]) return;
+  S.section=k; S.delId=null;
+  try{ if(location.hash!=='#'+k) history.pushState(null,'','#'+k); }catch(e){}
+  render(false);
+}
+let tt;
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),4200); }
+
+/* ================= события ================= */
+document.addEventListener('click',ev=>{
+  const g=ev.target.closest('[data-go]'); if(g){ go(g.getAttribute('data-go')); return; }
+  const a=ev.target.closest('[data-act]'); if(!a) return;
+  const act=a.getAttribute('data-act'), v=a.getAttribute('data-v'), id=a.getAttribute('data-id');
+  switch(act){
+    case 'more': $('#app').classList.add('more-open'); return;
+    case 'more-close': $('#app').classList.remove('more-open'); return;
+    case 'dir': S.form.dir=v; S.form.art=''; S.form.party=''; S.warn=null; break;
+    case 'op-force': submitOp(true); return;
+    case 'op-unwarn': S.warn=null; break;
+    case 'op-clear': resetForm(); break;
+    case 'op-cancel': resetForm(); break;
+    case 'op-edit': { const o=DB.ops.find(x=>x.id===id); S.form={date:o.date,dir:o.dir,art:o.art,party:o.party,sum:String(o.sum),note:o.note,why:''}; S.editId=id; S.warn=null; render(false); return; }
+    case 'op-del': S.delId=id; break;
+    case 'op-del-no': S.delId=null; break;
+    case 'op-del-ok': {
+      const why=($('#delreason')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину удаления'); return; }
+      const o=DB.ops.find(x=>x.id===id);
+      if(dayClosed(o.date)||o.date<lastClosed()){ toast('День операции уже закрыт'); return; }
+      if(o.dir==='in'&&firstNegative(DB.ops.filter(x=>x.id!==id))){ toast('Нельзя удалить приход: без него касса уйдёт в минус. Сначала исправьте расходы'); return; }
+      DB.ops=DB.ops.filter(x=>x.id!==id); log('Удалена операция',dmy(o.date)+' · '+A(o.art).name+' · '+fmt(o.sum)+' · причина: '+why.trim()); S.delId=null; save(); toast('Операция удалена, причина записана'); break; }
+    case 'inv-del': { const x=DB.inv.find(i=>i.id===id), why=(window.prompt('Причина удаления накладной')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.inv=DB.inv.filter(i=>i.id!==id); log('Удалена накладная',nameOf('suppliers',x.sup)+' №'+x.no+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Накладная удалена'); break; }
+    case 'podc-del': { const x=DB.podc.find(i=>i.id===id), why=(window.prompt('Причина удаления')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.podc=DB.podc.filter(i=>i.id!==id); log('Удалено закрытие подотчёта',nameOf('employees',x.emp)+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Запись удалена'); break; }
+    case 'imp-cancel': S.imp=null; break;
+    case 'sale-del': S.delSale=id; break;
+    case 'sale-del-no': S.delSale=null; break;
+    case 'sale-del-ok': {
+      const why=($('#saledelwhy')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину удаления'); return; }
+      const x=DB.sales.find(s=>s.id===id);
+      DB.sales=DB.sales.filter(s=>s.id!==id); S.delSale=null;
+      log('Удалены продажи дня',dmy(x.date)+' · '+x.src+' · '+fmt(x.sum-x.ret)+' · причина: '+why.trim()); save(); toast('Продажи за '+dmy(x.date)+' удалены. Файл можно загрузить заново'); break; }
+    case 'imp-ok': importSales(); return;
+    case 'sale-manual': S.manual=!S.manual; break;
+    case 'pick-day': S.date=v; break;
+    case 'day-open': {
+      const why=($('#reopenwhy')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину'); return; }
+      if(lastClosed()>S.date){ toast('Открыть можно только последний закрытый день: '+dmy(lastClosed())); return; }
+      DB.days[S.date].closed=false; log('День открыт повторно',dmy(S.date)+' · причина: '+why.trim()); save(); toast('День открыт, причина записана'); break; }
+    case 'dtab': S.debtTab=v; break;
+    case 'jdir': S.jf.dir=v; break;
+    case 'xlsx': exportXlsx(); return;
+    case 'bk-connect': connectFile(); return;
+    case 'bk-allow': allowFile(); return;
+    case 'take-stale': takeStale(); return;
+    case 'bk-download': downloadCopy(); toast('Копия скачана'); return;
+    case 'toggle': { const k=a.getAttribute('data-k'), x=DB[k].find(i=>i.id===id); x.active=x.active===false; save(); break; }
+    case 'add': {
+      const k=a.getAttribute('data-k'), ta=$('#add-'+k), names=ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+      let n=0; names.forEach(nm=>{ if(DB[k].some(x=>x.name.toLowerCase()===nm.toLowerCase())) return; const it={id:uid(),name:nm,active:true}; if(k==='employees') it.group=$('#emp-group').value; DB[k].push(it); n++; });
+      if(n){ log('Справочник',k+': добавлено '+n); save(); toast('Добавлено: '+n); } else toast('Нечего добавлять или такие уже есть'); break; }
+    case 'add-art': {
+      const nm=$('#ca-name').value.trim(); if(!nm){ toast('Введите название'); return; }
+      if(arts().some(x=>x.name.toLowerCase()===nm.toLowerCase())){ toast('Такая статья уже есть'); return; }
+      DB.customArts.push({id:'c_'+uid(),name:nm,dir:'out',kind:$('#ca-kind').value,need:$('#ca-car').value}); log('Статья добавлена',nm); save(); break; }
+    case 'open-unlock': { const why=($('#openwhy')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину'); return; } DB.opening.done=false; log('Вводный баланс открыт для изменения','причина: '+why.trim()); save(); break; }
+    case 'wipe':
+      if(($('#wipe')||{}).value!=='УДАЛИТЬ'){ toast('Введите слово УДАЛИТЬ'); return; }
+      downloadCopy(); clearTimeout(bkTimer); FH=null; fhOk=false; idb(s=>s.delete('backup')).catch(()=>{});
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      DB=blank(); persist(); S.section='setup'; log('Данные удалены на этом компьютере','перед удалением скачана копия');
+      toast('Данные удалены. Перед удалением скачана копия, файл копии не тронут'); render(false); return;
+    default: return;
+  }
+  render(true);
+});
+document.addEventListener('input',ev=>{
+  const el=ev.target;
+  const ff=el.getAttribute('data-ff'); if(ff){ S.form[ff]=el.value; if(ff==='sum'){ const s=el.parentNode.querySelector('small'); const n=parseSum(el.value); if(s) s.textContent=isNaN(n)?'':fmt(n)+' сум'; else if(!isNaN(n)){ const sm=document.createElement('small'); sm.className='muted'; sm.textContent=fmt(n)+' сум'; el.parentNode.appendChild(sm); } } if(S.warn){ S.warn=null; const m=document.querySelector('#opform .msg'); if(m) m.remove(); } return; }
+  const gf=el.getAttribute('data-gf'); if(gf){ S.gform[gf]=el.value; return; }
+  const pf=el.getAttribute('data-pf'); if(pf){ S.pform[pf]=el.value; return; }
+});
+document.addEventListener('change',ev=>{
+  const el=ev.target;
+  if(el.id==='month'){ S.month=el.value; render(false); return; }
+  if(el.hasAttribute('data-act-date')){ if(el.value){ S.date=el.value; S.delId=null; render(true); } return; }
+  if(el.id==='jart'){ S.jf.art=el.value; render(true); return; }
+  if(el.id==='salesfile'&&el.files[0]){ readSalesFile(el.files[0]); return; }
+  if(el.id==='restorefile'&&el.files[0]){
+    const fname=el.files[0].name, rd=new FileReader(); rd.onload=()=>{ try{ const d=JSON.parse(rd.result); if(!validCopy(d)) throw new Error('файл повреждён или это не копия Crafers Fin'); if(!window.confirm('Заменить данные на этом компьютере данными из файла? Текущие данные сначала скачаются копией.')) return; if(DB.ops.length||DB.inv.length||DB.sales.length) downloadCopy(); if(!Array.isArray(d.params)) d.params=[{from:'2000-01-01',salesVat:!!d.settings.salesVat,purchVat:!!d.settings.purchVat,vatRate:+d.settings.vatRate||12,ctax:+d.settings.ctax||15,cogsPct:+d.settings.cogsPct||80}]; DB=d; log('Данные открыты из копии',fname); persist(); render(false); toast('Данные открыты из копии'); }catch(e){ toast('Не удалось открыть копию: '+e.message); } el.value=''; }; rd.readAsText(el.files[0]); return; }
+  const mp=el.getAttribute('data-map'); if(mp){ S.imp.map[mp]=el.value; render(true); return; }
+  const ff=el.getAttribute('data-ff'); if(ff&&el.tagName==='SELECT'){ S.form[ff]=el.value; if(ff==='art') S.form.party=''; S.warn=null; render(true); return; }
+  if(ff==='date'){ S.form.date=el.value; return; }
+  const gf=el.getAttribute('data-gf'); if(gf&&el.tagName==='SELECT'){ S.gform[gf]=el.value; render(true); return; }
+  const pf=el.getAttribute('data-pf'); if(pf&&el.tagName==='SELECT'){ S.pform[pf]=el.value; if(pf==='art') S.pform.party=''; render(true); return; }
+});
+document.addEventListener('submit',ev=>{
+  ev.preventDefault(); const f=ev.target;
+  if(f.id==='opform') submitOp(false);
+  else if(f.id==='gform') submitInv();
+  else if(f.id==='pform') submitPodc();
+  else if(f.id==='cform'){
+    const cnt=parseSum(f.count.value), why=f.why.value.trim(), d=S.date, calc=cashAt(d);
+    if(isNaN(cnt)||cnt<0){ toast('Введите сумму пересчёта'); return; }
+    if(d>today()){ toast('Нельзя закрыть будущий день'); return; }
+    const earlier=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<d&&!dayClosed(x)).sort();
+    if(earlier.length){ toast('Сначала закройте '+dmy(earlier[0])+': дни закрываются по порядку'); return; }
+    const diff=cnt-calc; if(diff&&why.length<3){ toast('Есть расхождение '+fmt(diff)+' сум: укажите причину'); return; }
+    DB.days[d]={closed:true,at:new Date().toISOString(),calc,count:cnt,diff,why};
+    log('День закрыт',dmy(d)+' · по учёту '+fmt(calc)+' · пересчёт '+fmt(cnt)+' · расхождение '+fmt(diff)); save();
+    if(!(FH&&fhOk)) downloadCopy();
+    render(true); toast(diff?'День закрыт с расхождением '+fmt(diff)+' сум':'День закрыт, касса сходится');
+  }
+  else if(f.id==='mform'){
+    const d=f.d.value, s=parseSum(f.s.value), r=parseSum(f.r.value||0);
+    if(!d||d<DB.settings.startDate||d>today()){ toast('Проверьте дату'); return; }
+    if(!(s>=0)||!(r>=0)||(s===0&&r===0)){ toast('Проверьте суммы'); return; }
+    if(DB.sales.some(x=>x.date===d)&&!window.confirm('За этот день продажи уже есть (в том числе из SalesDoc). Добавить ещё — будет двойной учёт, если это те же отгрузки. Продолжить?')) return;
+    DB.sales.push({id:uid(),date:d,sum:s,ret:r,src:'вручную'}); log('Продажи вручную',dmy(d)+' · '+fmt(s-r)); S.manual=false; save(); render(true); toast('Продажи за '+dmy(d)+' добавлены');
+  }
+  else if(f.id==='sform'){
+    const st=DB.settings, num=(n,min,max)=>{ const x=parseFloat(String(f[n].value).replace(',','.')); return isFinite(x)&&x>=min&&x<=max?x:null; };
+    const vr=num('vatRate',0,50), ct=num('ctax',0,50), cp=num('cogsPct',0,100), bl=num('bigLimit',0,1e12);
+    if([vr,ct,cp,bl].some(x=>x===null)){ toast('Проверьте числа в параметрах'); return; }
+    if(!DB.ops.length&&f.startDate.value) st.startDate=f.startDate.value;
+    const cur={vatRate:vr,ctax:ct,cogsPct:cp,salesVat:f.salesVat.value==='1',purchVat:f.purchVat.value==='1'};
+    if(!(DB.ops.length||DB.sales.length||DB.inv.length)) DB.params=[Object.assign({from:'2000-01-01'},cur)];
+    else { const from=today().slice(0,7)+'-01'; DB.params=DB.params.filter(x=>x.from<from).concat([Object.assign({from:from},cur)]); }
+    Object.assign(st,cur,{bigLimit:Math.round(bl)});
+    log('Параметры изменены','НДС '+vr+'%, прибыль '+ct+'%, себестоимость '+cp+'%, крупный от '+fmt(bl)); save(); render(true); toast('Параметры сохранены');
+  }
+  else if(f.id==='oform'){
+    const O=DB.opening, bad=[];
+    const val=n=>{ const x=parseSum(f[n]?f[n].value:0); if(isNaN(x)) bad.push(n); return isNaN(x)?0:x; };
+    ['cash','clients','goods','fixed','loans','vat','ctax'].forEach(n=>O[n]=val(n));
+    active('suppliers').forEach(s=>O.sup[s.id]=val('sup:'+s.id));
+    active('employees').forEach(e=>O.pod[e.id]=val('pod:'+e.id));
+    if(bad.length){ toast('Проверьте числа: есть поля не числом'); return; }
+    if(O.cash<0){ toast('Касса не может быть отрицательной'); return; }
+    const neg=firstNegative(DB.ops); if(neg){ toast('С такой кассой на начало остаток уйдёт в минус на конец '+dmy(neg.d)+'. Проверьте сумму'); O.cash=DB.opening.cash; return; }
+    const done=ev.submitter&&ev.submitter.value==='done';
+    if(done) O.done=true;
+    log(done?'Вводный баланс утверждён':'Вводный баланс сохранён','касса '+fmt(O.cash)+', клиенты '+fmt(O.clients)+', товар '+fmt(O.goods)); save(); render(true); toast(done?'Вводный баланс утверждён':'Черновик сохранён');
+  }
+});
+window.addEventListener('popstate',()=>{ const k=location.hash.slice(1); if(VIEWS[k]){ S.section=k; render(false); } });
+
+/* для проверки расчётов из консоли */
+window.CF_APP={get DB(){ return DB; },plCalc,balance,cashAt,supBal,podBal,validateOp,firstNegative,parseSum,P,validCopy,guessMap};
+
+const startK=location.hash.slice(1);
+S.section=VIEWS[startK]?startK:(setupMissing().length&&!DB.ops.length?'setup':'cash');
+render(false); initBackup();
+})();
+</script>
+</body>
+</html>
