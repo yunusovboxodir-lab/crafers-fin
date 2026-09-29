@@ -174,7 +174,48 @@ label.fld input{height:44px;padding:0 12px;border:1px solid #D6D2C4;border-radiu
 /* нижняя навигация и «Ещё» — только телефон */
 .tabs,.sheet,.scrim{display:none}
 
+/* анкета */
+.qbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--amber-soft);color:var(--amber-ink);font-size:14px}
+.qbar b{font-weight:600}
+.qbar button{margin-left:auto;height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--amber);color:var(--side);font-weight:600;font-size:13px}
+.intro{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:20px 22px;border-radius:14px;background:var(--side);color:#fff}
+.intro p{margin:6px 0 0;color:#C9D3CD;font-size:14px;line-height:1.5;max-width:760px}
+.intro .btn{background:var(--amber);color:var(--side)}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qwrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.qside{position:sticky;top:0;display:flex;flex-direction:column;gap:2px;padding:10px}
+.qside button{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 10px;border:0;border-radius:8px;background:transparent;text-align:left;font-size:13px;color:var(--ink)}
+.qside button:hover{background:var(--soft)}
+.qside small{color:var(--muted);white-space:nowrap;font-size:12px}
+.qside small.ok{color:var(--green);font-weight:700}
+.qblocks{display:flex;flex-direction:column;gap:16px;min-width:0}
+.qblock{scroll-margin-top:8px;overflow:hidden}
+.qblock>header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 22px 0}
+.qblock h2{margin:0;font-size:18px;line-height:1.3}
+.qnote{margin:12px 22px 6px;padding:12px 14px;border-radius:10px;background:var(--soft);border:1px solid var(--line2);font-size:13px;color:var(--muted);line-height:1.5}
+.qnote b{color:var(--ink);font-weight:600}
+.q{padding:16px 22px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:10px}
+.q .qt{font-size:15px;font-weight:600;line-height:1.4}
+.q .qh{font-size:13px;color:var(--muted);margin-top:-4px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid #D6D2C4;border-radius:10px;background:#fff;font-size:14px;line-height:1.3;cursor:pointer}
+.opt input{accent-color:var(--green);width:16px;height:16px;margin:0;flex-shrink:0}
+.opt:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.qin{width:100%;min-height:44px;padding:10px 12px;border:1px solid #D6D2C4;border-radius:10px;font:inherit;font-size:15px;color:var(--ink);background:#fff;resize:vertical}
+.qin.c{min-height:38px;padding:7px 12px;font-size:14px;border-style:dashed}
+.prio{font-size:14px;min-width:420px}
+.prio th{font-size:12px;color:var(--muted);font-weight:600;text-align:center;padding:6px 8px;white-space:nowrap}
+.prio th:first-child{text-align:left}
+.prio td{padding:9px 8px;border-top:1px solid var(--line2);text-align:center}
+.prio td:first-child{text-align:left}
+.prio input{accent-color:var(--green);width:18px;height:18px;margin:0}
+.qprog{height:8px;background:var(--line2);border-radius:4px;overflow:hidden}
+.qprog i{display:block;height:100%;width:0;background:var(--green);border-radius:4px}
+
 @media (max-width: 1100px){
+  .qwrap{grid-template-columns:1fr}
+  .qside{position:static;flex-direction:row;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .qside button{width:auto;flex-shrink:0;white-space:nowrap}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .split{grid-template-columns:1fr}
   .expwrap{flex-direction:column}
@@ -202,6 +243,11 @@ label.fld input{height:44px;padding:0 12px;border:1px solid #D6D2C4;border-radiu
   .pad{padding:16px}
   .toast{left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   .map{font-size:13px}
+  .fgrid2{grid-template-columns:1fr}
+  .qblock>header,.q{padding-left:16px;padding-right:16px}
+  .qnote{margin-left:16px;margin-right:16px}
+  .intro{padding:16px}
+  .intro .btn{width:100%}
 
   /* списки как карточки */
   .list thead{display:none}
@@ -259,7 +305,7 @@ label.fld input{height:44px;padding:0 12px;border:1px solid #D6D2C4;border-radiu
 
 /* ================= данные и состояние ================= */
 var S = {
-  section:'desk', plView:'month', ddsView:'fact', expTab:'travel', dept:'all',
+  section:'desk', plView:'month', ddsView:'fact', expTab:'travel', dept:'all', debtTab:'clients',
   doc:null, posted:{}, showForm:false, form:{who:'',desc:'',sum:'',cat:'ГСМ'},
   files:{}, selFile:0,
   expenses:[
@@ -276,7 +322,7 @@ var S = {
   ]
 };
 
-var TITLES = {desk:'Сводка',pl:'P&L',dds:'Движение денег',cost:'Себестоимость',exp:'Расходы',salary:'Зарплата',ship:'Отгрузки',imp:'Импорт из Excel'};
+var TITLES = {desk:'Сводка',pl:'P&L',dds:'Движение денег',cost:'Себестоимость',exp:'Расходы',salary:'Зарплата',ship:'Отгрузки',imp:'Импорт из Excel',debts:'Долги',quiz:'Анкета'};
 var ICONS = {
   desk:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
   pl:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
@@ -286,6 +332,8 @@ var ICONS = {
   salary:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M17 5.5a3 3 0 010 5.5M19 14.8c1.4.8 2.3 2.4 2.6 4.7"/>',
   ship:'<path d="M2 6h12v10H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>',
   imp:'<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M12 17v-6M9 14l3-3 3 3"/>',
+  debts:'<path d="M12 3v18M5 7h14"/><path d="M5 7l-3 6a3 3 0 006 0zM19 7l-3 6a3 3 0 006 0z"/><path d="M8 21h8"/>',
+  quiz:'<path d="M9 3h6v3H9z"/><path d="M9 4.5H6V21h12V4.5h-3"/><path d="M9 14l2 2 4-4"/>',
   more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
 };
 function icon(k,sz){ return '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[k]+'</svg>'; }
@@ -323,12 +371,125 @@ var DEPTS=[['all','Все'],['sales','Торговые'],['drivers','Водит�
 var SALES=[['ОТ-00128','25.09.2026','ООО «Сомон Савдо»','Ташкент',48600000,false],['ОТ-00127','24.09.2026','ИП Каримов А.','Ташкент',12350000,true],['ОТ-00126','23.09.2026','ООО «Фарғона Дистрибьюшн»','Фергана',96200000,true],['ОТ-00125','22.09.2026','ЧП «Бахор Маркет»','Ташкент',7840000,true],['ОТ-00124','20.09.2026','ООО «Альфа Трейд Групп»','Ташкент',33900000,false],['ОТ-00123','18.09.2026','ООО «Навруз Фуд»','Самарканд',54120000,true]];
 var LINES=[['Масло подсолнечное, 1 л',240,24500,22400],['Сахар-песок, 1 кг',500,13800,12700],['Мука высший сорт, 2 кг',300,18200,16350],['Рис девзира, 1 кг',180,32000,27620]];
 var FILES=[
-  {name:'P&L_2026.xlsx',meta:'12 листов, 1 248 строк',target:'P&L',map:[['Месяц','Период'],['Статья','Статья P&L'],['Филиал','Подразделение'],['Сумма','Сумма, сум'],['Комментарий','Комментарий']]},
-  {name:'ДДС_сентябрь.xlsx',meta:'1 лист, 412 строк',target:'Движение денег',map:[['Дата','Дата операции'],['Приход / Расход','Направление'],['Статья','Статья ДДС'],['Касса / Банк','Счёт'],['Сумма','Сумма, сум']]},
-  {name:'Дорожные_ТП_сентябрь.xlsx',meta:'5 листов, 286 строк',target:'Расходы',map:[['ФИО','Сотрудник'],['Дата','Дата расхода'],['Вид расхода','Статья'],['Маршрут','Описание'],['Сумма','Сумма, сум']]},
-  {name:'ЗП_ведомость_09.xlsx',meta:'1 лист, 48 строк',target:'Зарплата',map:[['ФИО','Сотрудник'],['Должность','Должность'],['Оклад','Оклад'],['% плана','Выполнение плана'],['Бонус','Бонус']]},
-  {name:'Себестоимость_SKU.xlsx',meta:'3 листа, 164 строки',target:'Себестоимость',map:[['Код','Артикул'],['Наименование','SKU'],['Цена прихода','Цена закупки'],['Доставка','Логистика на ед.'],['Ретро','Бонусы на ед.']]}
+  {name:'Лист «Учет Денег»',meta:'касса и банк, приход и расход',target:'Движение денег',map:[['Дата','Дата операции'],['Группа, Лицо Контрагент','Контрагент'],['Наименование платежа','Назначение'],['Поступление / Выплата','Сумма'],['Финансовые Счета','Счёт: касса, банк'],['Статья ОДДС','Статья движения денег']]},
+  {name:'Лист «Учет Сделок»',meta:'продажи и валовая прибыль',target:'Отгрузки',map:[['Дата открытия заказа','Дата отгрузки'],['Заказчик','Клиент'],['Объект','Бренд'],['Общая сумма выручки','Сумма продажи'],['Прямые расходы по сделке','Себестоимость']]},
+  {name:'Лист «Учет Склада»',meta:'приход товара и списание',target:'Себестоимость',map:[['Дата','Дата'],['Контрагент, лицо','Поставщик'],['Поступление на склад','Приход, сум'],['Отгрузка со склада','Списание, сум'],['Уникальный номер Сделки','Отгрузка']]},
+  {name:'Лист «Учет обязательств»',meta:'начисления доходов и расходов',target:'P&L',map:[['Дата начисления','Период'],['Контрагент, лицо','Контрагент'],['Доход / Расход','Сумма'],['Статья ОПУ','Статья P&L'],['Подотчетное лицо','Сотрудник']]},
+  {name:'Лист «Зарплата»',meta:'начислено и выплачено',target:'Зарплата',map:[['ФИО Сотрудника','Сотрудник'],['Должность','Должность'],['Начисленная ЗП','Начислено'],['Выплачено за период','Выплачено'],['Задолженность на конец','Долг по зарплате']]},
+  {name:'Листы «Дебиторка» и «Кредиторка»',meta:'долги клиентов и поставщикам',target:'Долги',map:[['Заказчики / Лицо','Контрагент'],['На начало периода','Долг на начало'],['Оказали / получили','Отгрузки и поставки'],['Оплатили','Оплаты'],['На конец периода','Долг на конец']]},
+  {name:'Лист «Вст.Баланс»',meta:'остатки на дату старта',target:'Остатки на старт',map:[['Группа, Контрагент','Статья баланса'],['Активы','Актив'],['Пассивы','Пассив']]}
 ];
+
+/* ---------- долги (условные) ---------- */
+var DEBT_C=[['Оптовый склад · Фергана','Фергана','Эргашев С.',21,46800000,18300000],['Сеть из 3 магазинов · Самарканд','Самарканд','Норматов Б.',14,28400000,9200000],['Супермаркет · Юнусабад','Ташкент','Рахимова М.',7,15650000,0],['Магазин · Коканд','Фергана','Эргашев С.',14,11480000,4100000],['Кафе-кондитерская · Мирабад','Ташкент','Юсупов Д.',10,6120000,0],['Минимаркет · Чиланзар','Ташкент','Хасанов О.',7,3900000,1250000]];
+var DEBT_S=[['Поставщик A · вафли','Отсрочка 30 дней',184000000,'12.10.2026','ok'],['Поставщик B · чипсы','Отсрочка 21 день',126500000,'03.10.2026','ok'],['Поставщик D · мороженое','Отсрочка 14 дней',45400000,'22.09.2026','late'],['Поставщик E · печенье','Товар на реализации',23700000,'по мере продажи','ok'],['Поставщик C · шоколад','Предоплата',-10800000,'—','adv']];
+var DEBT_P=[['Абдуллаев Ш.','водитель-экспедитор, машина №3',3500000,2950000],['Мирзаев Ж.','водитель-экспедитор, Фергана',2500000,2500000],['Юсупов Д.','ТП, Ташкент',1500000,1240000],['Офис','хозяйственные расходы',2000000,1380000]];
+
+/* ---------- анкета ---------- */
+var PRIO=['Сразу','Потом','Не нужно'];
+var QZ=[
+  {id:'A',title:'Как ведётся учёт сейчас',short:'Учёт сейчас',screen:'imp',
+   note:'Ваш файл «Учёт финансов» — доработанный универсальный шаблон. Из 26 листов часть осталась от учёта стройки (договоры, объекты, субподрядчики) и скрыта. Операции внесены с конца декабря 2024 по апрель 2025.',
+   qs:[
+    {id:'A1',type:'one',t:'Чей учёт ведётся в этом файле?',opts:['Только торговля (дистрибуция)','Производство и торговля вместе','Вся группа компаний','Одна из фирм группы']},
+    {id:'A2',type:'one',t:'Файл заполнен по апрель 2025. Где учёт с мая 2025?',opts:['В этом же файле, новая версия','В 1С','В другом Excel','Учёт пока не ведётся','Другое']},
+    {id:'A3',type:'many',t:'Кто вносит операции?',opts:['Бухгалтер','Кассир','Директор или учредитель','Менеджер по продажам','Кладовщик']},
+    {id:'A4',type:'many',t:'Какие программы уже используются?',opts:['SalesDoc','1С','Excel','Банк-клиент','Didox или Faktura.uz (электронные счета-фактуры)','Telegram-боты']},
+    {id:'A5',type:'many',t:'Что сейчас мешает больше всего?',h:'Выберите до трёх пунктов.',opts:['Не видно прибыли по брендам и клиентам','Не видно, кто и сколько должен','Отчёт собирается долго','Ошибки в формулах, ручные сверки','Нет доступа с телефона','Нельзя разграничить, кто что видит','Не видно денег по кассам и экспедиторам']},
+    {id:'A6',type:'text',t:'Какое решение вы принимаете каждый месяц, но для него не хватает цифр?'}
+   ]},
+  {id:'B',title:'Деньги: кассы, банк, валюта',short:'Деньги',screen:'dds',
+   note:'Почти все операции в файле проходят через кассу, банк — реже. Счета «Касса USD» и «Пластик» заведены, но не используются. У большинства операций не заполнено назначение платежа.',
+   qs:[
+    {id:'B1',type:'many',t:'Какие счета нужно вести?',opts:['Касса в сумах','Один расчётный счёт','Несколько расчётных счетов','Касса в долларах','Корпоративная карта','Кассы филиалов','Деньги на руках у экспедиторов']},
+    {id:'B2',type:'one',t:'Нужна ли валюта?',opts:['Только сумы','Сумы и доллары, пересчёт по курсу на дату','Закупки в долларах, продажи в сумах']},
+    {id:'B3',type:'many',t:'Как клиенты платят за товар?',opts:['Наличными экспедитору при доставке','Наличными агенту','Перечислением на счёт','Картой или терминалом','Click или Payme']},
+    {id:'B4',type:'one',t:'Нужна ли сдача выручки экспедиторами с проверкой по накладным?',opts:['Да, каждый день','Да, раз в неделю','Нет']},
+    {id:'B5',type:'one',t:'Загружать выписку из банка автоматически?',ph:'Какой у вас банк?',opts:['Да','Нет, вносим вручную','Не знаю']},
+    {id:'B6',type:'one',t:'Нужен ли план платежей на неделю вперёд: кому и когда платить?',opts:['Обязательно','Желательно','Не нужно']}
+   ]},
+  {id:'C',title:'Продажи и долги клиентов',short:'Продажи, клиенты',screen:'ship',
+   note:'Продажи внесены сводными суммами: в январе по брендам, дальше одной строкой «Общий». Покупатели сведены в одного контрагента, поэтому долг каждой точки в файле не виден.',
+   qs:[
+    {id:'C1',type:'one',t:'Откуда брать продажи?',opts:['Выгрузка из SalesDoc','Из 1С','Вносить вручную','Из электронных счетов-фактур']},
+    {id:'C2',type:'one',t:'С какой детализацией вести выручку?',opts:['Каждая накладная','Сумма за день по агенту','Сумма за период по бренду, как сейчас']},
+    {id:'C3',type:'many',t:'В каком разрезе видеть долги клиентов?',opts:['По каждой торговой точке','По агенту','По супервайзеру','По территории','Общей суммой, как сейчас']},
+    {id:'C4',type:'one',t:'Даёте ли клиентам отсрочку?',ph:'Обычный срок отсрочки, дней',opts:['Да, у каждого свой срок и лимит','Да, одинаковый срок для всех','Только предоплата или оплата при доставке']},
+    {id:'C5',type:'one',t:'Предупреждать о просроченных долгах?',opts:['Да, агенту и супервайзеру','Да, только бухгалтеру','Не нужно']},
+    {id:'C6',type:'many',t:'Что бывает в продажах, кроме обычной отгрузки?',opts:['Возвраты','Бой и просрочка','Бонусы и скидки сетям','Акции, товар в подарок','Обмен товара']}
+   ]},
+  {id:'D',title:'Товар, склад и маржа',short:'Склад и маржа',screen:'cost',
+   note:'Склад в файле ведётся только в деньгах, без штук и килограммов; лист количественного учёта скрыт и пуст. Маржа по брендам видна только по первым сделкам января. Листы «Производство» и «Склад готовой продукции» заготовлены, но не заполнены.',
+   qs:[
+    {id:'D1',type:'many',t:'Где нужно видеть маржу?',opts:['По бренду или поставщику','По категории (линии)','По каждому товару (SKU)','По клиенту','По агенту','По территории']},
+    {id:'D2',type:'one',t:'Вести склад в количестве?',opts:['Да, в штуках и килограммах','Только в деньгах, как сейчас']},
+    {id:'D3',type:'line',t:'Сколько у вас складов? Бывает ли товар в машинах экспедиторов на ночь?'},
+    {id:'D4',type:'one',t:'Как считать себестоимость товара?',h:'Средняя цена сглаживает скачки закупочных цен; FIFO списывает сначала самую раннюю партию.',opts:['По средней цене закупки','По первой партии (FIFO)','Решите вы']},
+    {id:'D5',type:'many',t:'Что включать в себестоимость?',opts:['Цену закупки','Доставку от поставщика до склада','Бонусы и ретро от поставщика (уменьшают цену)','Доставку до клиента']},
+    {id:'D6',type:'one',t:'Есть ли своё производство, которое нужно вести в этой системе?',opts:['Да, вести здесь','Есть, но учитывается отдельно','Нет']}
+   ]},
+  {id:'E',title:'Поставщики и наши долги',short:'Поставщики',screen:'debts',
+   note:'Долги поставщикам в файле считаются по каждому поставщику: остаток на начало, приход товара, оплаты. Это работает, мы это сохраним.',
+   qs:[
+    {id:'E1',type:'one',t:'Как вести долг поставщику?',opts:['Общей суммой по поставщику, как сейчас','По каждой накладной со своим сроком оплаты']},
+    {id:'E2',type:'many',t:'На каких условиях работаете с поставщиками?',opts:['Предоплата','Отсрочка платежа','Товар на реализации','Бонусы за выполнение плана закупок']},
+    {id:'E3',type:'one',t:'Нужны ли акты сверки с поставщиками прямо из системы?',opts:['Обязательно','Желательно','Не нужно']}
+   ]},
+  {id:'F',title:'Расходы и деньги под отчёт',short:'Расходы',screen:'exp',
+   note:'Основные расходы в файле: ГСМ, ремонт авто, аренда, связь, коммунальные, услуги банка, прочие. Лист «Под отчёт» заведён, но его формулы ссылаются на удалённые ячейки и не считают.',
+   qs:[
+    {id:'F1',type:'one',t:'Статьи расходов',opts:['Оставить ваш список','Пересобрать вместе с нами']},
+    {id:'F2',type:'one',t:'Нужно ли утверждать расходы до оплаты?',ph:'Кто утверждает?',opts:['Да, все расходы','Да, только выше лимита','Нет']},
+    {id:'F3',type:'many',t:'Кому выдаются деньги под отчёт?',opts:['Экспедиторам','Водителям','Агентам','Офису','Никому']},
+    {id:'F4',type:'one',t:'Чем закрывается подотчёт?',opts:['Чеки или фото чеков','Запись в тетради или устно','По-разному']},
+    {id:'F5',type:'one',t:'ГСМ и ремонт машин вести',opts:['По каждой машине отдельно','Общей строкой']},
+    {id:'F6',type:'one',t:'Лимиты на ГСМ и ремонт по сотрудникам или машинам',opts:['Нужны','Не нужны']}
+   ]},
+  {id:'G',title:'Зарплата',short:'Зарплата',screen:'salary',
+   note:'Зарплата в файле ведётся группами («агенты», «доставщики», «склад»), а не по людям. В отчёте о прибыли она стоит в прямых расходах вместе с товаром.',
+   qs:[
+    {id:'G1',type:'many',t:'Из чего складывается зарплата агентов и доставщиков?',opts:['Оклад','Процент от продаж','Оплата за объём (кг, коробки)','Бонус за KPI из SalesDoc','Оплата за рейс или доставку','Штрафы']},
+    {id:'G2',type:'one',t:'Вести зарплату по каждому сотруднику?',opts:['Да, по каждому','Группами, как сейчас']},
+    {id:'G3',type:'many',t:'Что ещё нужно в зарплате?',opts:['Авансы','Удержания и штрафы','Долги сотрудников','Налоги с зарплаты: НДФЛ и соцналог']},
+    {id:'G4',type:'one',t:'Где показывать зарплату агентов и доставщиков в отчёте о прибыли?',h:'В прямых расходах она уменьшает валовую прибыль, в операционных — видна отдельной строкой ниже.',opts:['В прямых расходах, как сейчас','В операционных расходах','Показывать оба варианта']}
+   ]},
+  {id:'H',title:'Отчёты для руководства',short:'Отчёты',screen:'desk',
+   note:'В файле уже есть отчёт о прибылях и убытках, движение денег и баланс по месяцам. Проверочный блок баланса показывает расхождения, поэтому цифры приходится сверять вручную.',
+   qs:[
+    {id:'H1',type:'many',t:'Какие отчёты нужны?',opts:['Прибыль и убытки по месяцам','Прибыль по филиалам и территориям','Движение денег','Баланс','Долги клиентов','Долги поставщикам','Маржа по брендам','План-факт бюджета','Прогноз денег на месяц']},
+    {id:'H2',type:'line',t:'Какие филиалы или территории показывать отдельно?',ph:'Например: Ташкент, Фергана, Самарканд'},
+    {id:'H3',type:'one',t:'Нужен ли план (бюджет) на месяц?',opts:['Да, по всем статьям','Только выручка и маржа','Нет']},
+    {id:'H4',type:'one',t:'Как часто руководство смотрит цифры?',opts:['Каждый день','Раз в неделю','Раз в месяц']},
+    {id:'H5',type:'one',t:'Язык системы',opts:['Русский','Узбекский (латиница)','Оба']},
+    {id:'H6',type:'one',t:'Как облагается компания?',h:'От этого зависит, как считать выручку и налоги в отчётах.',opts:['НДС и налог на прибыль','Налог с оборота','Уточню у бухгалтера']}
+   ]},
+  {id:'I',title:'Доступ и переход',short:'Доступ',screen:'imp',
+   qs:[
+    {id:'I1',type:'many',t:'Кто будет работать в системе?',opts:['Учредители','Генеральный директор','Финансовый директор','Бухгалтер','Кассир','Коммерческий директор','Региональные менеджеры и супервайзеры','Кладовщик']},
+    {id:'I2',type:'many',t:'Кто может видеть прибыль и баланс?',opts:['Только учредители','Генеральный директор','Финансовый директор','Бухгалтер','Коммерческий директор']},
+    {id:'I3',type:'one',t:'Переносить ли историю из Excel?',opts:['Всё с декабря 2024','Только остатки на дату старта','Не переносить']},
+    {id:'I4',type:'one',t:'Где хранить данные?',opts:['В облаке','На своём сервере','Всё равно, главное надёжно']}
+   ]},
+  {id:'J',title:'Что нужно в первой версии',short:'Приоритеты',screen:null,noteLabel:'Главный блок.',
+   note:'По нему мы соберём первую версию системы и не будем делать лишнего. Отметьте для каждого раздела: нужен сразу, можно позже или не нужен совсем.',
+   qs:[
+    {id:'J1',type:'prio',t:'Разделы системы',rows:['Деньги: кассы, банк, экспедиторы','Продажи и долги клиентов','Склад в количестве и маржа','Долги поставщикам','Расходы и подотчёт','Зарплата','Отчёты для руководства','Производство','Связь с SalesDoc','Связь с 1С и банком']},
+    {id:'J2',type:'line',t:'К какой дате нужна первая версия?'},
+    {id:'J3',type:'text',t:'Что должно произойти, чтобы вы сказали: «система работает»?'}
+   ]}
+];
+var QKEY='crafersfin.anketa.v1', ANS={};
+try{ ANS=JSON.parse(localStorage.getItem(QKEY)||'{}')||{}; }catch(e){ ANS={}; }
+function saveAns(){ try{ localStorage.setItem(QKEY,JSON.stringify(ANS)); }catch(e){} }
+function isDone(q){
+  var v=ANS[q.id], c=String(ANS[q.id+'_c']||'').trim();
+  if(q.type==='many') return !!(v&&v.length)||!!c;
+  if(q.type==='prio') return !!(v&&Object.keys(v).length);
+  return !!String(v||'').trim()||!!c;
+}
+function qCount(b){ return {d:b.qs.filter(isDone).length,n:b.qs.length}; }
+function qTotal(){ var t={d:0,n:0}; QZ.forEach(function(b){ var c=qCount(b); t.d+=c.d; t.n+=c.n; }); return t; }
+function qBlock(id){ for(var i=0;i<QZ.length;i++) if(QZ[i].id===id) return QZ[i]; return null; }
 
 function pending(){ return S.expenses.filter(function(e){return e.pending;}).length; }
 function lowSku(){ return SKUS.filter(function(k){ var f=k[3]+k[4]+k[5]; return (k[6]-f)/k[6]<0.1; }).length; }
@@ -358,6 +519,7 @@ function vDesk(){
     ['Поступления от покупателей ниже плана','Факт '+fmt(tot(INS[0]))+' из '+fmt(INS[0].p)+' млн','var(--muted)','План-факт','dds-plan']
   ].map(function(t){ return '<button class="task" data-go="'+t[4]+'"><span class="dot" style="background:'+t[2]+'"></span><span class="t"><span>'+t[0]+'</span><small>'+t[1]+'</small></span><span class="go">'+t[3]+' ›</span></button>'; }).join('');
   return '<div class="page">'+
+    '<div class="intro"><div style="flex:1;min-width:240px"><b style="font-size:18px">Прототип Crafers Fin для согласования</b><p>Это кликабельный макет будущей системы учёта. Все цифры условные, не ваши. Посмотрите разделы и ответьте на анкету: по ответам соберём первую версию под ваш реальный учёт.</p></div><button class="btn" data-go="quiz">Открыть анкету · '+qTotal().d+' из '+qTotal().n+'</button></div>'+
     head('Финансы за сентябрь','Все филиалы, в млн сум','<button class="ghost" data-go="imp">Загрузить из Excel</button><button class="btn" data-act="exp-new">+ Расход</button>')+
     '<div class="grid4">'+kpis+'</div>'+
     '<div class="split"><div class="card pad" style="display:flex;flex-direction:column;gap:16px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b style="font-size:17px">Валовая прибыль и расходы</b><div class="legend"><span><i style="background:var(--green)"></i>Валовая прибыль</span><span><i style="background:var(--amber)"></i>Опер. расходы</span></div></div><div><div class="chart">'+bars+'</div><div class="months">'+mon+'</div></div></div>'+
@@ -536,35 +698,133 @@ function vImp(){
   var sel=FILES[S.selFile];
   var map=sel.map.map(function(m){ return '<div class="map"><span class="a">'+m[0]+'</span><span class="muted" style="text-align:center">→</span><span class="b">'+m[1]+'</span></div>'; }).join('');
   return '<div class="page">'+
-    head('Переезд из Excel','Загрузите текущие таблицы: система разложит данные по разделам и запомнит шаблон')+
+    head('Переезд из Excel','Ваш файл «Оптовая торговля · Учёт финансов 2025»: система разложит рабочие листы по разделам и запомнит шаблон')+
     '<div class="expwrap"><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">'+
-    '<div class="drop">'+icon('imp',34)+'<b style="font-size:16px">Выберите или перетащите файлы .xlsx</b><span class="muted" style="font-size:14px">P&amp;L, ДДС, дорожные, ведомости ЗП, себестоимость</span><button class="btn">Выбрать файлы</button></div>'+
+    '<div class="drop">'+icon('imp',34)+'<b style="font-size:16px">Перетащите файл .xlsx или выберите его</b><span class="muted" style="font-size:14px">Берём 8 рабочих листов из 26, остальные остались от шаблона и пропускаются</span><button class="btn">Выбрать файл</button></div>'+
     '<div class="card" style="overflow:hidden">'+files+'</div></div>'+
     '<div class="card pad limits" style="width:420px;display:flex;flex-direction:column;gap:12px"><div><b style="font-size:16px">Сопоставление колонок</b><div class="sub" style="margin-top:2px">'+esc(sel.name)+'</div></div>'+
     '<div class="map muted" style="font-size:12px;font-weight:600"><span>В Excel</span><span></span><span>В системе</span></div>'+map+
     '<div class="muted" style="font-size:13px;padding-top:8px;border-top:1px solid var(--line2)">Шаблон сохранится: следующий файл того же вида загрузится без настройки.</div></div></div></div>';
 }
 
+function vDebts(){
+  var t=S.debtTab, rows, th, foot;
+  var cT=DEBT_C.reduce(function(a,x){return a+x[4];},0), cO=DEBT_C.reduce(function(a,x){return a+x[5];},0);
+  var sT=DEBT_S.reduce(function(a,x){return a+Math.max(0,x[2]);},0);
+  var pT=DEBT_P.reduce(function(a,x){return a+x[2]-x[3];},0);
+  if(t==='clients'){
+    th='<th>Клиент</th><th>Агент</th><th class="r">Отсрочка</th><th class="r">Долг, сум</th><th class="r">Просрочено</th>';
+    rows=DEBT_C.map(function(x){ return '<tr><td class="main two"><b style="font-weight:600">'+x[0]+'</b><small>'+x[1]+'</small></td><td data-label="Агент">'+x[2]+'</td><td class="r" data-label="Отсрочка">'+x[3]+' дн.</td><td class="r num" data-label="Долг, сум"><b>'+fmt(x[4])+'</b></td><td class="r" data-label="Просрочено">'+(x[5]?'<span class="badge b-bad">'+fmt(x[5])+'</span>':'<span class="badge b-ok">нет</span>')+'</td></tr>'; }).join('');
+    foot=fmt(cT);
+  } else if(t==='suppliers'){
+    th='<th>Поставщик</th><th>Условия</th><th class="r">Мы должны, сум</th><th class="r">Оплатить до</th><th class="r">Статус</th>';
+    rows=DEBT_S.map(function(x){ var b=x[4]==='late'?'<span class="badge b-bad">Просрочено</span>':x[4]==='adv'?'<span class="badge b-none">Аванс выдан</span>':'<span class="badge b-ok">В срок</span>';
+      return '<tr><td class="main"><b style="font-weight:600">'+x[0]+'</b></td><td data-label="Условия">'+x[1]+'</td><td class="r num" data-label="Мы должны, сум"><b>'+fmt(x[2])+'</b></td><td class="r" data-label="Оплатить до">'+x[3]+'</td><td class="r" data-label="Статус">'+b+'</td></tr>'; }).join('');
+    foot=fmt(sT);
+  } else {
+    th='<th>Сотрудник</th><th class="r">Выдано</th><th class="r">Отчитался</th><th class="r">На руках, сум</th>';
+    rows=DEBT_P.map(function(x){ var r=x[2]-x[3];
+      return '<tr><td class="main two"><b style="font-weight:600">'+x[0]+'</b><small>'+x[1]+'</small></td><td class="r num" data-label="Выдано">'+fmt(x[2])+'</td><td class="r num muted" data-label="Отчитался">'+fmt(x[3])+'</td><td class="r num" data-label="На руках, сум"><b>'+(r?fmt(r):'—')+'</b></td></tr>'; }).join('');
+    foot=fmt(pT);
+  }
+  var cards=[['Нам должны клиенты',fmt(cT)],['Из них просрочено',fmt(cO)],['Мы должны поставщикам',fmt(sT)],['Под отчётом на руках',fmt(pT)]].map(function(k,i){
+    return '<button class="kpi" data-act="debt" data-v="'+(i<2?'clients':i===2?'suppliers':'adv')+'"><span>'+k[0]+'</span><span class="v num" style="font-size:22px">'+k[1]+'</span></button>'; }).join('');
+  var tabs=[['clients','Клиенты должны нам'],['suppliers','Мы должны поставщикам'],['adv','Деньги под отчётом']].map(function(x){ return '<button class="chip'+(t===x[0]?' on':'')+'" data-act="debt" data-v="'+x[0]+'">'+x[1]+'</button>'; }).join('');
+  return '<div class="page">'+
+    head('Долги','Кто должен нам, кому должны мы и деньги под отчётом, на 25 сентября, сум')+
+    '<div class="grid4">'+cards+'</div><div class="chips">'+tabs+'</div>'+
+    '<div class="card" style="overflow:hidden"><table class="list"><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table><div class="foot"><span class="muted">Итого:</span><b class="num">'+foot+'</b></div></div></div>';
+}
+
+function qInput(q){
+  var v=ANS[q.id], h='';
+  if(q.type==='one'||q.type==='many'){
+    var tp=q.type==='one'?'radio':'checkbox';
+    h='<div class="opts">'+q.opts.map(function(o){ var on=q.type==='one'?v===o:(v||[]).indexOf(o)!==-1;
+      return '<label class="opt"><input type="'+tp+'" name="q-'+q.id+'" data-q="'+q.id+'" value="'+esc(o)+'"'+(on?' checked':'')+'>'+esc(o)+'</label>'; }).join('')+'</div>'+
+      '<input class="qin c" data-qt="'+q.id+'_c" value="'+esc(ANS[q.id+'_c']||'')+'" placeholder="'+esc(q.ph||'Комментарий, если нужно')+'" autocomplete="off" aria-label="Комментарий к вопросу '+q.id+'">';
+  } else if(q.type==='text'){
+    h='<textarea class="qin" rows="3" data-qt="'+q.id+'" placeholder="Ваш ответ" aria-label="Ответ на вопрос '+q.id+'">'+esc(v||'')+'</textarea>';
+  } else if(q.type==='line'){
+    h='<input class="qin" data-qt="'+q.id+'" value="'+esc(v||'')+'" placeholder="'+esc(q.ph||'Ваш ответ')+'" autocomplete="off" aria-label="Ответ на вопрос '+q.id+'">';
+  } else {
+    var pv=v||{};
+    h='<div class="scroll"><table class="prio"><thead><tr><th>Раздел</th>'+PRIO.map(function(p){return '<th>'+p+'</th>';}).join('')+'</tr></thead><tbody>'+
+      q.rows.map(function(r,i){ return '<tr><td>'+esc(r)+'</td>'+PRIO.map(function(p){ return '<td><input type="radio" name="q-'+q.id+'-'+i+'" data-q="'+q.id+'" data-row="'+i+'" value="'+p+'" aria-label="'+esc(r)+': '+p+'"'+(pv[i]===p?' checked':'')+'></td>'; }).join('')+'</tr>'; }).join('')+
+      '</tbody></table></div>';
+  }
+  return '<div class="q"><div class="qt">'+q.id+'. '+esc(q.t)+'</div>'+(q.h?'<div class="qh">'+esc(q.h)+'</div>':'')+h+'</div>';
+}
+function vQuiz(){
+  var t=qTotal(), w=Math.round(t.d/t.n*100)+'%';
+  var prog='<div style="display:flex;align-items:center;gap:12px"><div class="qprog" style="flex:1"><i data-progbar style="width:'+w+'"></i></div><span class="muted" style="font-size:13px;white-space:nowrap">Отвечено <b data-prog>'+t.d+' из '+t.n+'</b></span></div>';
+  var side='<nav class="card qside" aria-label="Блоки анкеты">'+QZ.map(function(b){ var c=qCount(b);
+    return '<button data-act="q-jump" data-v="'+b.id+'"><span>'+b.id+'. '+esc(b.short)+'</span><small data-bc="'+b.id+'" class="'+(c.d===c.n?'ok':'')+'">'+c.d+'/'+c.n+'</small></button>'; }).join('')+
+    '<button data-act="q-jump" data-v="send"><span>Отправить ответы</span><small>›</small></button></nav>';
+  var blocks=QZ.map(function(b){
+    return '<section class="card qblock" id="qb-'+b.id+'"><header><h2>'+b.id+'. '+esc(b.title)+'</h2>'+(b.screen?'<button class="ghost" style="height:34px;font-size:13px" data-go="'+b.screen+'">Экран «'+TITLES[b.screen]+'» ›</button>':'')+'</header>'+
+      (b.note?'<div class="qnote"><b>'+(b.noteLabel||'Что мы увидели в вашем файле.')+'</b> '+esc(b.note)+'</div>':'<div style="height:6px"></div>')+
+      b.qs.map(qInput).join('')+'</section>';
+  }).join('');
+  var send='<section class="card pad qblock" id="qb-send" style="display:flex;flex-direction:column;gap:14px"><b style="font-size:18px">Отправить ответы</b>'+
+    '<div class="sub" style="margin:0">Скачайте файл с ответами и отправьте его в общий Telegram-чат проекта или Баходиру Юнусову. Неполную анкету тоже можно отправить.</div>'+prog+
+    '<div class="actions"><button class="btn" data-act="q-dl">Скачать ответы</button><button class="ghost" data-act="q-copy">Скопировать текст</button><button class="ghost" data-act="q-reset">Очистить для другого участника</button></div></section>';
+  return '<div class="page">'+
+    head('Анкета для Crafers','Около 15 минут, почти все ответы — выбор вариантов. Ответы сохраняются в этом браузере, можно вернуться позже.')+
+    '<div class="card pad" style="display:flex;flex-direction:column;gap:14px"><div class="fgrid2"><label class="fld">Ваше имя<input class="qin" data-qt="_name" value="'+esc(ANS._name||'')+'" autocomplete="name"></label><label class="fld">Должность<input class="qin" data-qt="_role" value="'+esc(ANS._role||'')+'" autocomplete="organization-title"></label></div>'+prog+
+    '<div class="muted" style="font-size:13px;line-height:1.5">Отвечайте на то, что знаете. Блоки можно поделить: деньги и расходы — бухгалтеру, продажи — коммерческому директору, приоритеты — руководителю. Каждый участник скачивает свой файл.</div></div>'+
+    '<div class="qwrap">'+side+'<div class="qblocks">'+blocks+send+'</div></div></div>';
+}
+function qAnsText(q){
+  var v=ANS[q.id];
+  if(q.type==='prio'){ v=v||{}; return q.rows.map(function(r,i){ return '\n   • '+r+': '+(v[i]||'—'); }).join(''); }
+  if(q.type==='many') return (v&&v.length)?v.join('; '):'—';
+  return String(v||'').trim()||'—';
+}
+function qExport(){
+  var t=qTotal(), L=['АНКЕТА CRAFERS FIN — ОТВЕТЫ','Заполнил: '+(ANS._name||'—')+(ANS._role?', '+ANS._role:''),'Дата: '+new Date().toLocaleString('ru-RU'),'Отвечено: '+t.d+' из '+t.n,''];
+  QZ.forEach(function(b){
+    L.push(b.id+'. '+b.title.toUpperCase());
+    b.qs.forEach(function(q){ L.push(q.id+'. '+q.t); L.push('   → '+qAnsText(q)); var c=String(ANS[q.id+'_c']||'').trim(); if(c) L.push('   Комментарий: '+c); });
+    L.push('');
+  });
+  return L.join('\n');
+}
+function qProgUpdate(){
+  var t=qTotal();
+  [].forEach.call(document.querySelectorAll('[data-prog]'),function(el){ el.textContent=t.d+' из '+t.n; });
+  [].forEach.call(document.querySelectorAll('[data-progbar]'),function(el){ el.style.width=Math.round(t.d/t.n*100)+'%'; });
+  QZ.forEach(function(b){ var c=qCount(b), el=document.querySelector('[data-bc="'+b.id+'"]'); if(el){ el.textContent=c.d+'/'+c.n; el.className=c.d===c.n?'ok':''; } });
+  renderNav();
+}
+function qScreen(k){ return k==='debts'?(S.debtTab==='clients'?'C':S.debtTab==='suppliers'?'E':'F'):({desk:'H',pl:'H',dds:'B',cost:'D',exp:'F',salary:'G',ship:'C',imp:'A'})[k]; }
+function qBar(k){
+  var b=qBlock(qScreen(k)); if(!b) return '';
+  var c=qCount(b);
+  return '<div class="qbar">'+icon('quiz',18)+'<span><b>Вопросы к этому экрану</b> · блок «'+esc(b.title)+'»: отвечено '+c.d+' из '+c.n+'</span><button data-act="q-open" data-v="'+b.id+'">'+(c.d?'Продолжить':'Ответить')+' ›</button></div>';
+}
+
 /* ================= навигация ================= */
-var VIEWS={desk:vDesk,pl:vPl,dds:vDds,cost:vCost,exp:vExp,salary:vSalary,ship:vShip,imp:vImp};
-var TABS=['desk','pl','dds','exp'];
-var MORE=['cost','salary','ship','imp'];
+var VIEWS={desk:vDesk,pl:vPl,dds:vDds,cost:vCost,exp:vExp,salary:vSalary,ship:vShip,imp:vImp,debts:vDebts,quiz:vQuiz};
+var TABS=['desk','pl','dds','quiz'];
+var MORE=['debts','exp','cost','salary','ship','imp'];
 
 function renderNav(){
   var p=pending();
-  var pill=function(k){ return k==='exp'&&p?'<span class="pill">'+p+'</span>':''; };
+  var qt=qTotal();
+  var pill=function(k){ return k==='exp'&&p?'<span class="pill">'+p+'</span>':k==='quiz'&&qt.d<qt.n?'<span class="pill">'+(qt.n-qt.d)+'</span>':''; };
   var btn=function(k){ return '<button class="nav'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k)+TITLES[k]+pill(k)+'</button>'; };
-  document.getElementById('sidenav').innerHTML='<div class="group">Финансы</div>'+['desk','pl','dds','cost','exp','salary'].map(btn).join('')+'<div class="group">Операции</div>'+['ship','imp'].map(btn).join('');
+  document.getElementById('sidenav').innerHTML='<div class="group">Финансы</div>'+['desk','pl','dds','debts','cost','exp','salary'].map(btn).join('')+'<div class="group">Операции</div>'+['ship','imp'].map(btn).join('')+'<div class="group">Согласование</div>'+btn('quiz');
   var inMore=MORE.indexOf(S.section)!==-1;
   document.getElementById('tabs').innerHTML=TABS.map(function(k){
-    var short={desk:'Сводка',pl:'P&L',dds:'Деньги',exp:'Расходы'}[k];
+    var short={desk:'Сводка',pl:'P&L',dds:'Деньги',quiz:'Анкета'}[k];
     return '<button class="tab'+(S.section===k?' on':'')+'" data-go="'+k+'">'+icon(k,22)+short+pill(k)+'</button>';
   }).join('')+'<button class="tab'+(inMore?' on':'')+'" data-act="more">'+icon('more',22)+'Ещё</button>';
   document.getElementById('sheet').innerHTML='<div class="grab"></div>'+MORE.map(btn).join('');
 }
 function render(keepScroll){
   var m=document.getElementById('main'), y=m.scrollTop;
-  m.innerHTML=VIEWS[S.section]();
+  m.innerHTML=VIEWS[S.section]().replace('<div class="page">','<div class="page">'+qBar(S.section));
   document.getElementById('crumb').textContent=TITLES[S.section];
   document.title='Crafers Fin · '+TITLES[S.section];
   renderNav();
@@ -617,6 +877,26 @@ document.addEventListener('click',function(ev){
       S.doc=null; render(false); toast('Отгрузка '+no+' проведена'); return;
     case 'file-sel': S.selFile=+i; break;
     case 'file-run': S.files[+i]=true; S.selFile=+i; render(true); toast(FILES[+i].name+' загружен в раздел «'+FILES[+i].target+'»'); return;
+    case 'debt': S.debtTab=v; break;
+    case 'q-open': go('quiz'); qJump(v); return;
+    case 'q-jump': qJump(v); return;
+    case 'q-dl':
+      try{
+        var nm=String(ANS._name||'участник').replace(/[\\/:*?"<>|]+/g,'').trim()||'участник';
+        var url=URL.createObjectURL(new Blob(['﻿'+qExport()],{type:'text/plain;charset=utf-8'}));
+        var ln=document.createElement('a'); ln.href=url; ln.download='Crafers Fin, анкета, '+nm+'.txt';
+        document.body.appendChild(ln); ln.click(); setTimeout(function(){ URL.revokeObjectURL(url); ln.remove(); },1000);
+        toast('Файл с ответами скачан');
+      }catch(e){ toast('Не получилось скачать, нажмите «Скопировать текст»'); }
+      return;
+    case 'q-copy':
+      var txt=qExport();
+      var fallback=function(){ var ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} ta.remove(); toast(ok?'Текст ответов скопирован':'Не получилось скопировать'); };
+      if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('Текст ответов скопирован'); },fallback); else fallback();
+      return;
+    case 'q-reset':
+      if(window.confirm('Очистить все ответы в этом браузере? Сначала скачайте файл, если ещё не скачали.')){ ANS={}; saveAns(); render(false); toast('Ответы очищены'); }
+      return;
     default: return;
   }
   render(true);
@@ -624,7 +904,17 @@ document.addEventListener('click',function(ev){
 document.addEventListener('input',function(ev){
   var f=ev.target.getAttribute && ev.target.getAttribute('data-f');
   if(f) S.form[f]=ev.target.value;
+  var qt=ev.target.getAttribute && ev.target.getAttribute('data-qt');
+  if(qt){ ANS[qt]=ev.target.value; saveAns(); qProgUpdate(); }
 });
+document.addEventListener('change',function(ev){
+  var el=ev.target, q=el.getAttribute && el.getAttribute('data-q'); if(!q) return;
+  if(el.hasAttribute('data-row')){ if(!ANS[q]||typeof ANS[q]!=='object') ANS[q]={}; ANS[q][el.getAttribute('data-row')]=el.value; }
+  else if(el.type==='checkbox') ANS[q]=[].map.call(document.querySelectorAll('input[data-q="'+q+'"]:checked'),function(x){ return x.value; });
+  else ANS[q]=el.value;
+  saveAns(); qProgUpdate();
+});
+function qJump(id){ var el=document.getElementById('qb-'+id); if(el) el.scrollIntoView({block:'start'}); }
 window.addEventListener('popstate',function(){
   var k=location.hash.slice(1); if(VIEWS[k]){ S.section=k; S.doc=null; S.showForm=false; render(false); }
 });
