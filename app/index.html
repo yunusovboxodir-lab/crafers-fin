@@ -324,7 +324,9 @@ const ARTS0=[
   ['out_otax','Прочие налоги и сборы','out','expense','none'],
   ['out_other','Прочие расходы','out','expense','none'],
   ['out_loan','Возврат займа','out','loan_out','none'],
-  ['out_owner','Выплата учредителям','out','equity_out','none']
+  ['out_owner','Выплата учредителям','out','equity_out','none'],
+  ['out_short','Недостача кассы при пересчёте','out','expense','none',1],
+  ['in_surplus','Излишек кассы при пересчёте','in','other_in','none',1]
 ];
 function blank(){
   return {v:1,
@@ -341,13 +343,27 @@ DB.saleKeys={};
 if(!Array.isArray(DB.params)){ const s=DB.settings; DB.params=[{from:'2000-01-01',salesVat:s.salesVat,purchVat:s.purchVat,vatRate:s.vatRate,ctax:s.ctax,cogsPct:s.cogsPct}]; }
 let STORE_OK=true;
 function persist(){ try{ localStorage.setItem(KEY,JSON.stringify(DB)); STORE_OK=true; return true; }catch(e){ STORE_OK=false; return false; } }
+function storedRev(){ try{ const s=localStorage.getItem(KEY); if(!s) return 0; const m=s.match(/"rev":(\d+)/); return m?+m[1]:0; }catch(e){ return 0; } }
+function reloadFromStore(){
+  try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d&&d.v===1){ DB=d; if(!Array.isArray(DB.params)||!DB.params.length) DB.params=blank().params; DB.saleKeys={}; } }catch(e){}
+}
 function save(){
+  if(storedRev()>(DB.rev||0)){
+    reloadFromStore(); resetForm(); render(false);
+    toast('Данные изменились в другой вкладке. Последнее действие НЕ сохранено — повторите его. Работайте в одной вкладке');
+    throw new Error('crafersfin: конфликт вкладок');
+  }
+  DB.rev=(DB.rev||0)+1;
   if(!persist()) toast('Память браузера заполнена: данные сохраняются только в файл копии. Скачайте копию в разделе «Данные»');
   scheduleBackup();
 }
 /* параметры действуют с даты: прошлые месяцы не пересчитываются */
 function P(d){ let p=DB.params[0]; DB.params.forEach(x=>{ if(x.from<=d) p=x; }); return p; }
-function log(what,detail){ DB.log.unshift({at:new Date().toISOString(),what:what,detail:detail||''}); if(DB.log.length>3000) DB.log.length=3000; }
+const CRIT=/Удал|Исправл|открыт|Вводный|копи|Недостача|Излишек|Группа|Параметры/;
+function log(what,detail){
+  DB.log.unshift({at:new Date().toISOString(),what:what,detail:detail||''});
+  if(DB.log.length>4000){ const keep=[]; let n=0, lastParam=null; DB.log.forEach(l=>{ if(n<2000||(CRIT.test(l.what)&&!(l.what==='Параметры изменены'&&l.detail===lastParam))) keep.push(l); if(l.what==='Параметры изменены') lastParam=l.detail; n++; }); DB.log=keep; }
+}
 try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 /* ================= утилиты ================= */
@@ -375,7 +391,7 @@ function addMonth(m){ let y=+m.slice(0,4), mo=+m.slice(5,7)+1; if(mo>12){ mo=1; 
 function monthsBetween(a,b){ const r=[]; let m=a.slice(0,7); while(m<=b.slice(0,7)){ r.push(m); m=addMonth(m); } return r; }
 
 /* ================= справочники ================= */
-function arts(){ return ARTS0.map(a=>({id:a[0],name:a[1],dir:a[2],kind:a[3],need:a[4]})).concat(DB.customArts); }
+function arts(){ return ARTS0.map(a=>({id:a[0],name:a[1],dir:a[2],kind:a[3],need:a[4],sys:!!a[5]})).concat(DB.customArts); }
 function A(id){ return arts().find(a=>a.id===id)||{id:id,name:'(статья удалена)',dir:'out',kind:'expense',need:'none'}; }
 const listOf=k=>DB[k];
 function nameOf(k,id){ const x=DB[k].find(i=>i.id===id); return x?x.name:'—'; }
@@ -407,7 +423,7 @@ function plCalc(f,t){
   const direct=sum(Object.keys(lines).filter(id=>A(id).kind==='direct'),id=>lines[id]);
   const expense=sum(Object.keys(lines).filter(id=>A(id).kind==='expense'),id=>lines[id]);
   const sal=ops.filter(o=>k(o)==='salary');
-  const grpOf=o=>{ const e=DB.employees.find(x=>x.id===o.party); return e?e.group:'office'; };
+  const grpOf=o=>{ if(o.grp) return o.grp; const e=DB.employees.find(x=>x.id===o.party); return e?e.group:'office'; };
   const salD=sum(sal.filter(o=>grpOf(o)==='direct'),'sum'), salO=sum(sal.filter(o=>grpOf(o)!=='direct'),'sum');
   const bonus=sum(ops.filter(o=>k(o)==='bonus'),'sum'), ptax=sum(ops.filter(o=>k(o)==='payroll_tax'),'sum'), otherIn=sum(ops.filter(o=>k(o)==='other_in'),'sum');
   const net=N0-bonus, cogs=N0*st.cogsPct/100, gross=net-cogs-direct-salD, opex=salO+ptax+expense, ebitda=gross-opex, pbt=ebitda+otherIn;
@@ -450,6 +466,14 @@ function firstNegative(list){
   for(const d of Object.keys(days).sort()){ b+=days[d]; if(b<0) return {d:d,b:b}; }
   return null;
 }
+function podFirstNeg(emp,ops,podc){
+  const ev={}, add=(d,v)=>{ ev[d]=(ev[d]||0)+v; };
+  ops.forEach(o=>{ if(o.party!==emp) return; const k=A(o.art).kind; if(k==='pod_issue') add(o.date,o.sum); else if(k==='pod_return') add(o.date,-o.sum); });
+  podc.forEach(x=>{ if(x.emp===emp) add(x.date,-x.sum); });
+  let b=+DB.opening.pod[emp]||0;
+  for(const d of Object.keys(ev).sort()){ b+=ev[d]; if(b<0) return {d:d,b:b}; }
+  return null;
+}
 function validateOp(o,editId){
   const errs=[], warns=[], st=DB.settings, a=A(o.art);
   if(!o.date) errs.push('Укажите дату.');
@@ -471,7 +495,10 @@ function validateOp(o,editId){
     else errs.push('После этого касса уйдёт в минус на конец '+dmy(neg.d)+': '+fmt(neg.b)+' сум. Проверьте сумму.');
   }
   if(o.dir==='out'&&a.kind==='supplier'){ const old=editId?DB.ops.find(x=>x.id===editId):null; const b=supBal(o.party,o.date)+(old&&old.party===o.party&&A(old.art).kind==='supplier'&&old.date<=o.date?old.sum:0); if(o.sum>b&&b>=0) warns.push('Мы должны этому поставщику '+fmt(b)+' сум, а платим '+fmt(o.sum)+'. Разница станет авансом. Если это оплата накладной, сначала внесите её в «Приход товара».'); }
-  if(a.kind==='pod_return'){ const old=editId?DB.ops.find(x=>x.id===editId):null; const b=podBal(o.party,o.date)+(old&&old.party===o.party&&A(old.art).kind==='pod_return'&&old.date<=o.date?old.sum:0); if(o.sum>b) errs.push('У сотрудника под отчётом только '+fmt(b)+' сум.'); }
+  { const old=editId?DB.ops.find(x=>x.id===editId):null, emps={};
+    if(a.kind==='pod_issue'||a.kind==='pod_return') emps[o.party]=1;
+    if(old&&(A(old.art).kind==='pod_issue'||A(old.art).kind==='pod_return')) emps[old.party]=1;
+    Object.keys(emps).forEach(e=>{ const pn=podFirstNeg(e,rest.concat([o]),DB.podc); if(pn) errs.push('Под отчётом у сотрудника '+nameOf('employees',e)+' будет минус на конец '+dmy(pn.d)+': '+fmt(pn.b)+' сум.'); }); }
   if(editId&&String(o.why||'').trim().length<3) errs.push('Укажите причину исправления.');
   if(o.sum>=1e9) warns.push('Сумма больше миллиарда сум. Проверьте, нет ли лишних нулей.');
   if(o.dir==='out'&&o.sum>st.bigLimit) warns.push('Крупный расход: больше '+fmt(st.bigLimit)+' сум. Он попадёт в список на проверку финансовому директору.');
@@ -492,7 +519,9 @@ async function initBackup(){
 async function connectFile(){
   try{
     FH=await window.showSaveFilePicker({suggestedName:'Crafers Fin данные.json',types:[{description:'Данные Crafers Fin',accept:{'application/json':['.json']}}]});
-    await idb(s=>s.put(FH,'backup')); fhOk=true; await writeBackup(); toast('Файл копии подключён: каждое изменение сохраняется в него');
+    await idb(s=>s.put(FH,'backup')); fhOk=true; await checkStale();
+    if(STALE) toast('В выбранном файле уже есть данные новее, чем в браузере. Возьмите их или выберите другой файл');
+    else { await writeBackup(); toast('Файл копии подключён: каждое изменение сохраняется в него'); }
   }catch(e){ if(e&&e.name!=='AbortError') toast('Не получилось подключить файл: '+e.message); }
   render(true);
 }
@@ -582,7 +611,7 @@ function setupMissing(){
 /* ================= экран: касса ================= */
 function vCash(){
   const f=S.form, a=f.art?A(f.art):null, d=S.date;
-  const artList=arts().filter(x=>x.dir===f.dir);
+  const artList=arts().filter(x=>x.dir===f.dir&&!x.sys);
   const partySel=a&&a.need!=='none'?'<label class="fld">'+NEED_LABEL[a.need]+'<select class="qin" data-ff="party">'+opts(active(NEED[a.need]),f.party,'— выберите —')+'</select></label>':'';
   const hint=a&&a.kind==='supplier'&&f.party?'<small class="muted">Мы должны поставщику: '+fmt(supBal(f.party,f.date||today()))+' сум</small>':
     a&&(a.kind==='pod_return'||a.kind==='pod_issue')&&f.party?'<small class="muted">Под отчётом у сотрудника: '+fmt(podBal(f.party,f.date||today()))+' сум</small>':'';
@@ -610,7 +639,8 @@ function vCash(){
   return '<div class="page">'+
     head('Касса','Единственное место ручного ввода: всё остальное считается само',
       '<label class="chipbtn">День <input type="date" class="msel" data-act-date="1" value="'+d+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>')+
-    (STALE?box('bad','<b>В файле копии данные новее, чем в браузере</b><span>Так бывает, если память браузера переполнилась. Возьмите данные из файла, иначе последние операции потеряются.</span><div><button class="btn sm" data-act="take-stale">Взять данные из файла копии</button></div>'):'')+
+    (OTHER_TAB?box('bad','<b>Приложение открыто в нескольких вкладках</b><span>Работайте в одной вкладке, остальные закройте. Иначе действие в одной вкладке может не сохраниться.</span>'):'')+
+    (STALE?box('bad','<b>В файле копии данные новее, чем в браузере</b><span>Так бывает, если память браузера переполнилась. Возьмите данные из файла, иначе последние операции потеряются.</span><div class="actions"><button class="btn sm" data-act="take-stale">Взять данные из файла копии</button><button class="ghost" style="height:34px" data-act="stale-overwrite">Нет, записать в файл данные этого браузера</button></div>'):'')+
     (FH&&!fhOk&&!STALE?box('bad','<b>Копия в файл остановлена</b><span>После перезапуска браузера нужно разрешить запись в файл «'+esc(FH.name)+'». Без этого данные есть только в браузере.</span><div><button class="btn sm" data-act="bk-allow">Разрешить запись копии</button></div>'):'')+
     (!STORE_OK?box('bad','<b>Память браузера заполнена</b><span>Данные сохраняются только в файл копии. Сообщите нам сегодня же.</span>'):'')+
     (miss.length?box('warn','<b>Перед началом работы</b>'+miss.map(m=>'<span><button class="linkbtn" data-go="'+m[0]+'">'+m[1]+' ›</button></span>').join('')):'')+
@@ -625,6 +655,8 @@ function submitOp(force){
   const v=validateOp(Object.assign({why:f.why},o),S.editId);
   if(v.errs.length||(v.warns.length&&!force)){ S.warn=v; render(true); return; }
   o.big=o.dir==='out'&&o.sum>DB.settings.bigLimit;
+  if(a.kind==='salary'){ const e=DB.employees.find(x=>x.id===o.party); o.grp=e?e.group:'office'; }
+  if(S.editId&&!DB.ops.find(x=>x.id===S.editId)){ resetForm(); render(true); toast('Эта операция уже удалена'); return; }
   if(S.editId){
     const old=DB.ops.find(x=>x.id===S.editId), before=dmy(old.date)+' · '+A(old.art).name+' · '+fmt(old.sum)+' · '+old.note;
     Object.assign(old,o,{edited:new Date().toISOString()});
@@ -661,6 +693,7 @@ function submitInv(){
   if(!f.date||f.date>today()||f.date<DB.settings.startDate) errs.push('Проверьте дату.');
   if(!f.sup) errs.push('Выберите поставщика.');
   if(!no) errs.push('Укажите номер накладной.');
+  if(f.date&&(dayClosed(f.date)||f.date<lastClosed())) errs.push('День '+dmy(f.date)+' закрыт: документы за закрытые дни не вносятся.');
   if(!(s>0)) errs.push('Сумма должна быть больше нуля.');
   if(no&&DB.inv.find(x=>x.sup===f.sup&&x.no.toLowerCase()===no.toLowerCase())) errs.push('Накладная '+esc(no)+' этого поставщика уже внесена.');
   if(errs.length){ toast(errs.join(' ')); return; }
@@ -672,7 +705,7 @@ function submitInv(){
 /* ================= экран: закрыть подотчёт ================= */
 function vPodc(){
   const f=S.pform, a=f.art?A(f.art):null;
-  const list=arts().filter(x=>x.kind==='direct'||x.kind==='expense');
+  const list=arts().filter(x=>(x.kind==='direct'||x.kind==='expense')&&!x.sys);
   const emps=active('employees').map(e=>({id:e.id,name:e.name+' · на руках '+fmt(podBal(e.id,today()))}));
   const r=monthRange(S.month), items=DB.podc.filter(x=>inRange(x,r[0],r[1])).sort((x,y)=>x.date<y.date?1:-1);
   const rows=items.map(x=>'<tr><td class="main two"><b style="font-weight:600">'+esc(nameOf('employees',x.emp))+'</b><small>'+esc(A(x.art).name)+(x.party?' · '+esc(nameOf('cars',x.party)):'')+' · '+esc(x.note)+'</small></td><td data-label="Дата">'+dmy(x.date)+'</td><td class="r num" data-label="Сумма"><b>'+fmt(x.sum)+'</b></td><td class="r" data-label="">'+'<button class="ghost" style="height:34px;padding:0 10px" data-act="podc-del" data-id="'+x.id+'">Удалить</button>'+'</td></tr>').join('');
@@ -696,7 +729,8 @@ function submitPodc(){
   if(a&&a.need==='car'&&!f.party) errs.push('Выберите машину.');
   if(!(s>0)) errs.push('Сумма должна быть больше нуля.');
   if(String(f.note||'').trim().length<3) errs.push('Опишите чеки.');
-  if(f.emp&&s>0&&s>podBal(f.emp,f.date)) errs.push('У сотрудника под отчётом только '+fmt(podBal(f.emp,f.date))+' сум.');
+  if(f.emp&&s>0&&f.date){ const pn=podFirstNeg(f.emp,DB.ops,DB.podc.concat([{emp:f.emp,date:f.date,sum:s}])); if(pn) errs.push('Столько сотруднику не выдавали: на конец '+dmy(pn.d)+' под отчётом был бы минус '+fmt(pn.b)+' сум. Чеки закрываются датой после выдачи.'); }
+  if(f.date&&(dayClosed(f.date)||f.date<lastClosed())) errs.push('День '+dmy(f.date)+' закрыт: документы за закрытые дни не вносятся.');
   if(errs.length){ toast(errs.join(' ')); return; }
   DB.podc.push({id:uid(),date:f.date,emp:f.emp,art:f.art,party:a.need==='car'?f.party:'',sum:s,note:String(f.note).trim(),created:new Date().toISOString()});
   log('Подотчёт закрыт чеками',dmy(f.date)+' · '+nameOf('employees',f.emp)+' · '+fmt(s));
@@ -729,7 +763,7 @@ function vSales(){
       (p.err?box('bad',p.err):
        '<div class="scroll"><table class="list"><thead><tr><th>День</th><th class="r">Отгружено</th><th class="r">Возвраты</th><th class="r">Строк</th><th class="r">Уже загружено</th></tr></thead><tbody>'+
        p.days.map(d=>'<tr><td class="main">'+dmy(d.date)+(d.date<DB.settings.startDate?' <small style="color:var(--warn)">раньше начала учёта, пропускается</small>':'')+(d.manual&&d.n?' <small style="color:var(--warn)">за этот день есть итог, введённый вручную: удалите его, иначе будет двойной учёт</small>':'')+(d.loaded&&d.n?' <small style="color:var(--warn)">за этот день SalesDoc уже загружен: если это повторная выгрузка того же дня, отмените, удалите день и загрузите заново — иначе задвоится</small>':'')+'</td><td class="r num" data-label="Отгружено">'+fmt(d.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(d.ret)+'</td><td class="r" data-label="Строк">'+d.n+'</td><td class="r" data-label="Уже загружено">'+d.dup+'</td></tr>').join('')+
-       '</tbody></table></div>'+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки и итоговые строки — проверьте.</small>':''))+
+       '</tbody></table></div>'+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки — проверьте.</small>':'')+(p.totals?'<small class="muted">Пропущено итоговых строк («Итого», «Всего»): '+p.totals+'.</small>':'')+(p.future?'<small style="color:var(--warn)">Пропущено строк с датой позже сегодняшней: '+p.future+'. Загрузите их в свой день.</small>':''))+
       '<div class="actions" style="justify-content:flex-end"><button class="ghost" data-act="imp-cancel">Отмена</button>'+(p.err?'':p.newRows?'<button class="btn" data-act="imp-ok">Загрузить строк: '+p.newRows+'</button>':'<span class="muted" style="align-self:center">Новых строк нет: этот файл уже загружен</span>')+'</div></div>';
   }
   const rows=list.map(x=>'<tr><td class="main">'+dmy(x.date)+'</td><td class="r num" data-label="Отгружено">'+fmt(x.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(x.ret)+'</td><td class="r num" data-label="Итого"><b>'+fmt(x.sum-x.ret)+'</b></td><td class="r" data-label="Источник"><small class="muted">'+esc(x.src||'')+'</small></td>'+
@@ -750,11 +784,13 @@ function salesPreview(){
   const I=S.imp, m=I.map, start=DB.settings.startDate;
   if(m.date===''||m.sum==='') return {err:'Выберите колонки с датой и суммой.'};
   if(String(m.date)===String(m.sum)) return {err:'Дата и сумма не могут быть одной колонкой.'};
-  const days={}, seen={}, have=new Set(); let bad=0, newRows=0;
+  const days={}, seen={}, have=new Set(), td=today(); let bad=0, newRows=0, totals=0, future=0;
   DB.sales.forEach(x=>(x.keys||[]).forEach(k=>have.add(k)));
   I.rows.forEach(row=>{
+    if(row.some(c=>/итог|всего|total/i.test(String(c==null?'':c)))){ totals++; return; }
     const d=cellDate(row[m.date]), s=parseSum(row[m.sum]);
     if(!d||isNaN(s)||s===0){ bad++; return; }
+    if(d>td){ future++; return; }
     const isRet=s<0||(m.type!==''&&/возврат/i.test(String(row[m.type]||'')));
     const base=d+'|'+row.map(x=>x instanceof Date?x.toISOString():String(x==null?'':x)).join('¦');
     seen[base]=(seen[base]||0)+1;
@@ -765,7 +801,7 @@ function salesPreview(){
   });
   const list=Object.values(days).sort((a,b)=>a.date<b.date?-1:1);
   if(!list.length) return {err:'В выбранных колонках не нашлось ни одной строки с датой и суммой.'};
-  return {days:list,bad,newRows};
+  return {days:list,bad,newRows,totals,future};
 }
 function importSales(){
   const p=salesPreview(); if(p.err) return;
@@ -785,7 +821,9 @@ function readSalesFile(file){
   const rd=new FileReader();
   rd.onload=()=>{
     try{
-      const wb=XLSX.read(new Uint8Array(rd.result),{type:'array',cellDates:true});
+      const bytes=new Uint8Array(rd.result); let wb;
+      if(/\.csv$/i.test(file.name)){ let txt=new TextDecoder('utf-8').decode(bytes); if(txt.indexOf('\uFFFD')>=0) txt=new TextDecoder('windows-1251').decode(bytes); wb=XLSX.read(txt.replace(/^\uFEFF/,''),{type:'string',cellDates:true,raw:false}); }
+      else wb=XLSX.read(bytes,{type:'array',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
       let h=aoa.findIndex(r=>r.filter(c=>typeof c==='string'&&c.trim()).length>=2);
@@ -805,14 +843,14 @@ function readSalesFile(file){
 
 /* ================= экран: закрытие дня ================= */
 function vClose(){
-  const d=S.date, closed=dayClosed(d), calc=cashAt(d);
+  const d=S.date, closed=dayClosed(d), calc=closed?DB.days[d].calc:cashAt(d);
   const past=Object.keys(DB.days).filter(k=>DB.days[k].closed).sort().reverse().slice(0,20);
   const open=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<today()&&!dayClosed(x)).sort();
   const rows=past.map(k=>'<tr><td class="main">'+dmy(k)+'</td><td class="r num" data-label="По учёту">'+fmt(DB.days[k].calc)+'</td><td class="r num" data-label="Пересчёт">'+fmt(DB.days[k].count)+'</td><td class="r" data-label="Расхождение"><span class="badge '+(DB.days[k].diff?'b-bad':'b-ok')+'">'+fmt(DB.days[k].diff)+'</span></td></tr>').join('');
   return '<div class="page">'+head('Закрытие дня','Кассир пересчитывает деньги, система сравнивает с учётом. Закрытый день нельзя изменить без записи причины',
       '<label class="chipbtn">День <input type="date" class="msel" data-act-date="1" value="'+d+'" min="'+DB.settings.startDate+'" max="'+today()+'"></label>')+
     (open.length?box('warn','<b>Не закрыты прошедшие дни с операциями</b><span>'+open.map(x=>'<button class="linkbtn" data-act="pick-day" data-v="'+x+'">'+dmy(x)+'</button>').join(' · ')+'</span>'):'')+
-    '<div class="grid4">'+kpi('На начало дня',fmt(cashBefore(d)))+kpi('Приход','+'+fmt(sum(DB.ops.filter(o=>o.date===d&&o.dir==='in'),'sum')))+kpi('Расход',fmt(-sum(DB.ops.filter(o=>o.date===d&&o.dir==='out'),'sum')))+kpi('Должно быть в кассе',fmt(calc),null,null,true)+'</div>'+
+    '<div class="grid4">'+kpi('На начало дня',fmt(cashBefore(d)))+kpi('Приход','+'+fmt(sum(DB.ops.filter(o=>o.date===d&&o.dir==='in'),'sum')))+kpi('Расход',fmt(-sum(DB.ops.filter(o=>o.date===d&&o.dir==='out'),'sum')))+kpi(closed?'По учёту при закрытии':'Должно быть в кассе',fmt(calc),null,null,true)+'</div>'+
     (closed?box('ok','<b>День '+dmy(d)+' закрыт '+new Date(DB.days[d].at).toLocaleString('ru-RU')+'.</b><span>Пересчёт '+fmt(DB.days[d].count)+' сум, расхождение '+fmt(DB.days[d].diff)+' сум'+(DB.days[d].why?': '+esc(DB.days[d].why):'')+'.</span>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="qin c" id="reopenwhy" placeholder="Причина, почему открываем день" style="max-width:340px"><button class="ghost" data-act="day-open">Открыть день</button></div>'):
      '<form class="card pad form" id="cform" style="display:flex;flex-direction:column;gap:14px"><div class="form-grid"><label class="fld">Фактически в кассе после пересчёта, сум<input class="qin num" name="count" inputmode="numeric" placeholder="0"></label>'+
@@ -839,6 +877,7 @@ function vDesk(){
   if(!lastSale) alerts.push(['Продажи из SalesDoc ещё не загружены','Без них нет выручки и долга клиентов','var(--amber)','sales']);
   else if(lastSale<t) alerts.push(['Последние продажи загружены за '+dmy(lastSale),'Загрузите выгрузку за следующие дни','var(--muted)','sales']);
   if(bt.goods<0) alerts.push(['Товар на складе ушёл в минус: '+fmt(bt.goods)+' сум','Проверьте накладные и процент себестоимости в параметрах','#C0621F','goods']);
+  DB.employees.forEach(e=>{ const pn=podFirstNeg(e.id,DB.ops,DB.podc); if(pn) alerts.push(['Подотчёт '+e.name+' в минусе на '+dmy(pn.d)+': '+fmt(pn.b)+' сум','Проверьте даты выдачи и чеков','#C0621F','podc']); });
   if(Math.abs(b.eq-b.eqCalc)>1) alerts.push(['Баланс не сходится на '+fmt(b.eq-b.eqCalc)+' сум','Сообщите разработчику','#C0621F','bal']);
   const days=monthRange(m)[1].slice(8,10), bars=[];
   for(let i=1;i<=+days;i++){ const d=m+'-'+String(i).padStart(2,'0'); bars.push(d<f||d>t?null:cashAt(d)); }
@@ -935,7 +974,7 @@ function vJournal(){
 function vSetup(){
   const st=Object.assign({},DB.settings,P(today())), hasData=DB.ops.length||DB.sales.length||DB.inv.length;
   const lst=(k,title,extra)=>'<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b style="font-size:16px">'+title+' <span class="muted" style="font-weight:400">· '+active(k).length+'</span></b>'+
-    '<div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto">'+(DB[k].length?DB[k].map(x=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;'+(x.active===false?'opacity:.5':'')+'"><span>'+esc(x.name)+(x.group?' <small class="muted">· '+(x.group==='direct'?'агент/доставщик':'офис')+'</small>':'')+'</span><button class="ghost" style="height:30px;padding:0 10px;font-size:12px" data-act="toggle" data-k="'+k+'" data-id="'+x.id+'">'+(x.active===false?'Вернуть':'Скрыть')+'</button></div>').join(''):'<span class="muted" style="font-size:14px">Пусто</span>')+'</div>'+
+    '<div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto">'+(DB[k].length?DB[k].map(x=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;'+(x.active===false?'opacity:.5':'')+'"><span>'+esc(x.name)+'</span>'+(k==='employees'?'<select class="qin c" style="height:30px;width:auto;margin-left:auto" data-grp="'+x.id+'" aria-label="Группа"><option value="direct"'+(x.group==='direct'?' selected':'')+'>агент или доставщик</option><option value="office"'+(x.group!=='direct'?' selected':'')+'>офис</option></select>':'')+'<button class="ghost" style="height:30px;padding:0 10px;font-size:12px" data-act="toggle" data-k="'+k+'" data-id="'+x.id+'">'+(x.active===false?'Вернуть':'Скрыть')+'</button></div>').join(''):'<span class="muted" style="font-size:14px">Пусто</span>')+'</div>'+
     '<textarea class="qin" rows="3" id="add-'+k+'" placeholder="Добавить: по одному на строку"></textarea>'+(extra||'')+'<div><button class="btn sm" data-act="add" data-k="'+k+'">Добавить</button></div></div>';
   const custom='<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b style="font-size:16px">Своя статья расхода</b><div class="form-grid"><label class="fld">Название<input class="qin" id="ca-name"></label><label class="fld">Куда в P&L<select class="qin" id="ca-kind"><option value="expense">Операционный расход</option><option value="direct">Прямой расход</option></select></label><label class="fld">Нужна машина<select class="qin" id="ca-car"><option value="none">Нет</option><option value="car">Да</option></select></label></div><div><button class="btn sm" data-act="add-art">Добавить статью</button></div>'+
     (DB.customArts.length?'<span class="muted" style="font-size:13px">Добавлены: '+DB.customArts.map(a=>esc(a.name)).join(', ')+'</span>':'')+'</div>';
@@ -949,7 +988,7 @@ function vSetup(){
     '<label class="fld">Накладные поставщиков с НДС<select class="qin" name="purchVat"><option value="1"'+(st.purchVat?' selected':'')+'>Да</option><option value="0"'+(!st.purchVat?' selected':'')+'>Нет</option></select></label></div>'+
     (hasData?'<small class="muted">НДС, налог и себестоимость меняются с '+dmy(today().slice(0,7)+'-01')+': прошлые месяцы считаются по прежним значениям.</small>':'')+'<div class="actions" style="justify-content:flex-end"><button class="btn" type="submit">Сохранить параметры</button></div></form>';
   return '<div class="page">'+head('Справочники и параметры','Заполняет финансовый директор один раз. Кассир выбирает только из этих списков')+par+
-    '<div class="split3">'+lst('suppliers','Поставщики')+lst('employees','Сотрудники','<label class="fld">Группа для новых<select class="qin" id="emp-group"><option value="direct">Агенты и доставщики — прямые расходы</option><option value="office">Офис — операционные расходы</option></select></label>')+lst('cars','Машины')+'</div>'+custom+'</div>';
+    '<div class="split3">'+lst('suppliers','Поставщики')+lst('employees','Сотрудники','<label class="fld">Группа для новых<select class="qin" id="emp-group" data-keep="empGroup"><option value="direct"'+(S.empGroup!=='office'?' selected':'')+'>Агенты и доставщики — прямые расходы</option><option value="office"'+(S.empGroup==='office'?' selected':'')+'>Офис — операционные расходы</option></select></label>')+lst('cars','Машины')+'</div>'+custom+'</div>';
 }
 function vOpening(){
   const O=DB.opening, dis=O.done?' disabled':'';
@@ -976,7 +1015,7 @@ function vData(){
       '<span class="muted" style="font-size:14px">Только на компьютере кассира. Выберите файл в папке, которая синхронизируется с OneDrive или Google Диском. После этого каждое изменение сохраняется в него само. Руководителю файл не подключать: он только «Открывает копию».</span><div><button class="btn" data-act="bk-connect">Подключить файл копии</button></div>')+'</div>'+
     '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b style="font-size:16px">Вручную</b><div class="actions"><button class="ghost" data-act="bk-download">Скачать копию</button><label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer">Открыть копию<input type="file" id="restorefile" accept=".json" hidden></label><button class="ghost" data-act="xlsx">Выгрузить всё в Excel</button></div>'+
     '<span class="muted" style="font-size:13px">«Открыть копию» заменяет данные на этом компьютере данными из файла. Так руководитель смотрит аналитику у себя. Занято в браузере: '+Math.round(used/1024)+' КБ из примерно 5 000.</span></div>'+
-    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Журнал изменений</b></div><table class="list"><tbody>'+DB.log.slice(0,40).map(l=>'<tr><td class="main two">'+esc(l.what)+'<small>'+esc(l.detail)+'</small></td><td class="r" data-label="Когда"><small class="muted">'+new Date(l.at).toLocaleString('ru-RU')+'</small></td></tr>').join('')+'</tbody></table></div>'+
+    '<div class="card" style="overflow:hidden"><div class="pad" style="padding-bottom:10px"><b style="font-size:16px">Журнал изменений</b> <span class="muted" style="font-size:13px">· последние 60 из '+DB.log.length+', весь журнал — в выгрузке Excel</span></div><table class="list"><tbody>'+DB.log.slice(0,60).map(l=>'<tr><td class="main two">'+esc(l.what)+'<small>'+esc(l.detail)+'</small></td><td class="r" data-label="Когда"><small class="muted">'+new Date(l.at).toLocaleString('ru-RU')+'</small></td></tr>').join('')+'</tbody></table></div>'+
     '<div class="card pad" style="display:flex;flex-direction:column;gap:10px;border-color:var(--warn-soft)"><b style="font-size:16px;color:var(--warn)">Удалить все данные на этом компьютере</b><span class="muted" style="font-size:13px">Только если данные перенесены. Введите слово УДАЛИТЬ.</span><div style="display:flex;gap:8px;flex-wrap:wrap"><input class="qin c" id="wipe" style="max-width:200px"><button class="ghost" data-act="wipe">Удалить</button></div></div></div>';
 }
 function exportXlsx(){
@@ -989,7 +1028,11 @@ function exportXlsx(){
   add('Продажи',[['Дата','Отгружено','Возвраты','Источник']].concat(DB.sales.slice().sort((a,b)=>a.date<b.date?-1:1).map(x=>[dmy(x.date),x.sum,x.ret,x.src])));
   add('Закрытие дней',[['День','По учёту','Пересчёт','Расхождение','Причина']].concat(Object.keys(DB.days).sort().map(k=>[dmy(k),DB.days[k].calc,DB.days[k].count,DB.days[k].diff,DB.days[k].why||''])));
   const f=repStart(), e=repEnd(), p=plCalc(f,e);
-  add('P&L '+S.month,[['Статья','Сумма'],['Выручка без НДС',Math.round(p.N0)],['НДС',Math.round(p.vat)],['Бонусы и акции',-p.bonus],['Себестоимость',-Math.round(p.cogs)],['Прямые расходы',-p.direct],['Зарплата агентов и доставщиков',-p.salD],['Валовая прибыль',Math.round(p.gross)],['Операционные расходы',-p.opex],['EBITDA',Math.round(p.ebitda)],['Налог на прибыль',-Math.round(p.ctax)],['Чистая прибыль',Math.round(p.np)]]);
+  const L=(k,n)=>Object.keys(p.lines).filter(id=>A(id).kind===k).map(id=>['  '+A(id).name,-p.lines[id]]);
+  add('P&L '+S.month,[['Статья','Сумма'],['Отгружено',p.G],['Возвраты',-p.R],['НДС',-Math.round(p.vat)],['Выручка без НДС',Math.round(p.N0)],['Бонусы и акции',-p.bonus],['Чистая выручка',Math.round(p.net)],['Себестоимость',-Math.round(p.cogs)]]
+    .concat(L('direct')).concat([['Зарплата агентов и доставщиков',-p.salD],['Валовая прибыль',Math.round(p.gross)],['Зарплата офиса',-p.salO],['Налоги с зарплаты',-p.ptax]]).concat(L('expense'))
+    .concat([['Итого операционные расходы',-Math.round(p.opex)],['EBITDA',Math.round(p.ebitda)],['Прочие поступления',p.otherIn],['Прибыль до налога',Math.round(p.pbt)],['Налог на прибыль',-Math.round(p.ctax)],['Чистая прибыль',Math.round(p.np)]]));
+  add('Журнал изменений',[['Когда','Что','Подробности']].concat(DB.log.map(l=>[new Date(l.at).toLocaleString('ru-RU'),l.what,l.detail])));
   XLSX.writeFile(wb,'Crafers Fin '+today()+'.xlsx');
 }
 
@@ -1052,10 +1095,13 @@ document.addEventListener('click',ev=>{
       const why=($('#delreason')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину удаления'); return; }
       const o=DB.ops.find(x=>x.id===id);
       if(dayClosed(o.date)||o.date<lastClosed()){ toast('День операции уже закрыт'); return; }
+      if(o.sys){ toast('Запись пересчёта удаляется только открытием дня'); return; }
       if(o.dir==='in'&&firstNegative(DB.ops.filter(x=>x.id!==id))){ toast('Нельзя удалить приход: без него касса уйдёт в минус. Сначала исправьте расходы'); return; }
+      if(A(o.art).kind==='pod_issue'&&podFirstNeg(o.party,DB.ops.filter(x=>x.id!==id),DB.podc)){ toast('Нельзя удалить выдачу: по ней уже закрыты чеки или есть возврат'); return; }
+      if(S.editId===id) resetForm();
       DB.ops=DB.ops.filter(x=>x.id!==id); log('Удалена операция',dmy(o.date)+' · '+A(o.art).name+' · '+fmt(o.sum)+' · причина: '+why.trim()); S.delId=null; save(); toast('Операция удалена, причина записана'); break; }
-    case 'inv-del': { const x=DB.inv.find(i=>i.id===id), why=(window.prompt('Причина удаления накладной')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.inv=DB.inv.filter(i=>i.id!==id); log('Удалена накладная',nameOf('suppliers',x.sup)+' №'+x.no+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Накладная удалена'); break; }
-    case 'podc-del': { const x=DB.podc.find(i=>i.id===id), why=(window.prompt('Причина удаления')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.podc=DB.podc.filter(i=>i.id!==id); log('Удалено закрытие подотчёта',nameOf('employees',x.emp)+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Запись удалена'); break; }
+    case 'inv-del': { const x=DB.inv.find(i=>i.id===id); if(dayClosed(x.date)||x.date<lastClosed()){ toast('День накладной закрыт'); return; } const why=(window.prompt('Причина удаления накладной')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.inv=DB.inv.filter(i=>i.id!==id); log('Удалена накладная',nameOf('suppliers',x.sup)+' №'+x.no+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Накладная удалена'); break; }
+    case 'podc-del': { const x=DB.podc.find(i=>i.id===id); if(dayClosed(x.date)||x.date<lastClosed()){ toast('День закрыт'); return; } const why=(window.prompt('Причина удаления')||'').trim(); if(why.length<3){ toast('Удаление отменено: нужна причина'); return; } DB.podc=DB.podc.filter(i=>i.id!==id); log('Удалено закрытие подотчёта',nameOf('employees',x.emp)+' · '+fmt(x.sum)+' · причина: '+why); save(); toast('Запись удалена'); break; }
     case 'imp-cancel': S.imp=null; break;
     case 'sale-del': S.delSale=id; break;
     case 'sale-del-no': S.delSale=null; break;
@@ -1070,6 +1116,7 @@ document.addEventListener('click',ev=>{
     case 'day-open': {
       const why=($('#reopenwhy')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину'); return; }
       if(lastClosed()>S.date){ toast('Открыть можно только последний закрытый день: '+dmy(lastClosed())); return; }
+      const adjId=DB.days[S.date].adjId; if(adjId){ DB.ops=DB.ops.filter(o=>o.id!==adjId); delete DB.days[S.date].adjId; }
       DB.days[S.date].closed=false; log('День открыт повторно',dmy(S.date)+' · причина: '+why.trim()); save(); toast('День открыт, причина записана'); break; }
     case 'dtab': S.debtTab=v; break;
     case 'jdir': S.jf.dir=v; break;
@@ -1077,6 +1124,7 @@ document.addEventListener('click',ev=>{
     case 'bk-connect': connectFile(); return;
     case 'bk-allow': allowFile(); return;
     case 'take-stale': takeStale(); return;
+    case 'stale-overwrite': if(window.confirm('Перезаписать файл копии данными этого браузера? Данные из файла пропадут.')){ STALE=null; fhOk=true; log('Файл копии перезаписан','по решению пользователя'); writeBackup(); render(true); toast('Файл копии перезаписан'); } return;
     case 'bk-download': downloadCopy(); toast('Копия скачана'); return;
     case 'toggle': { const k=a.getAttribute('data-k'), x=DB[k].find(i=>i.id===id); x.active=x.active===false; save(); break; }
     case 'add': {
@@ -1107,6 +1155,9 @@ document.addEventListener('input',ev=>{
 document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.id==='month'){ S.month=el.value; render(false); return; }
+  if(el.id==='emp-group'){ S.empGroup=el.value; return; }
+  const gid=el.getAttribute('data-grp');
+  if(gid){ const e=DB.employees.find(x=>x.id===gid), was=e.group; e.group=el.value; log('Группа сотрудника изменена',e.name+': '+(was==='direct'?'агент или доставщик':'офис')+' → '+(el.value==='direct'?'агент или доставщик':'офис')+'. Действует для новых выплат'); save(); render(true); toast('Группа изменена: действует для новых выплат'); return; }
   if(el.hasAttribute('data-act-date')){ if(el.value){ S.date=el.value; S.delId=null; render(true); } return; }
   if(el.id==='jart'){ S.jf.art=el.value; render(true); return; }
   if(el.id==='salesfile'&&el.files[0]){ readSalesFile(el.files[0]); return; }
@@ -1131,6 +1182,8 @@ document.addEventListener('submit',ev=>{
     if(earlier.length){ toast('Сначала закройте '+dmy(earlier[0])+': дни закрываются по порядку'); return; }
     const diff=cnt-calc; if(diff&&why.length<3){ toast('Есть расхождение '+fmt(diff)+' сум: укажите причину'); return; }
     DB.days[d]={closed:true,at:new Date().toISOString(),calc,count:cnt,diff,why};
+    if(diff){ const adj={id:uid(),date:d,dir:diff<0?'out':'in',art:diff<0?'out_short':'in_surplus',party:'',sum:Math.abs(diff),note:'Пересчёт при закрытии дня'+(why?': '+why:''),created:new Date().toISOString(),sys:true}; DB.ops.push(adj); DB.days[d].adjId=adj.id;
+      log(diff<0?'Недостача кассы':'Излишек кассы',dmy(d)+' · '+fmt(Math.abs(diff))+' · '+why); }
     log('День закрыт',dmy(d)+' · по учёту '+fmt(calc)+' · пересчёт '+fmt(cnt)+' · расхождение '+fmt(diff)); save();
     if(!(FH&&fhOk)) downloadCopy();
     render(true); toast(diff?'День закрыт с расхождением '+fmt(diff)+' сум':'День закрыт, касса сходится');
@@ -1143,7 +1196,7 @@ document.addEventListener('submit',ev=>{
     DB.sales.push({id:uid(),date:d,sum:s,ret:r,src:'вручную'}); log('Продажи вручную',dmy(d)+' · '+fmt(s-r)); S.manual=false; save(); render(true); toast('Продажи за '+dmy(d)+' добавлены');
   }
   else if(f.id==='sform'){
-    const st=DB.settings, num=(n,min,max)=>{ const x=parseFloat(String(f[n].value).replace(',','.')); return isFinite(x)&&x>=min&&x<=max?x:null; };
+    const st=DB.settings, num=(n,min,max)=>{ const s=String(f[n].value).replace(/[\s\u00A0\u202F]/g,'').replace(',','.'); if(!/^\d+(\.\d+)?$/.test(s)) return null; const x=parseFloat(s); return isFinite(x)&&x>=min&&x<=max?x:null; };
     const vr=num('vatRate',0,50), ct=num('ctax',0,50), cp=num('cogsPct',0,100), bl=num('bigLimit',0,1e12);
     if([vr,ct,cp,bl].some(x=>x===null)){ toast('Проверьте числа в параметрах'); return; }
     if(!DB.ops.length&&f.startDate.value) st.startDate=f.startDate.value;
@@ -1154,23 +1207,35 @@ document.addEventListener('submit',ev=>{
     log('Параметры изменены','НДС '+vr+'%, прибыль '+ct+'%, себестоимость '+cp+'%, крупный от '+fmt(bl)); save(); render(true); toast('Параметры сохранены');
   }
   else if(f.id==='oform'){
-    const O=DB.opening, bad=[];
-    const val=n=>{ const x=parseSum(f[n]?f[n].value:0); if(isNaN(x)) bad.push(n); return isNaN(x)?0:x; };
-    ['cash','clients','goods','fixed','loans','vat','ctax'].forEach(n=>O[n]=val(n));
-    active('suppliers').forEach(s=>O.sup[s.id]=val('sup:'+s.id));
-    active('employees').forEach(e=>O.pod[e.id]=val('pod:'+e.id));
-    if(bad.length){ toast('Проверьте числа: есть поля не числом'); return; }
-    if(O.cash<0){ toast('Касса не может быть отрицательной'); return; }
-    const neg=firstNegative(DB.ops); if(neg){ toast('С такой кассой на начало остаток уйдёт в минус на конец '+dmy(neg.d)+'. Проверьте сумму'); O.cash=DB.opening.cash; return; }
+    const old=DB.opening, O=JSON.parse(JSON.stringify(old)), bad=[];
+    const LBL={cash:'касса',clients:'клиенты',goods:'товар',fixed:'основные средства',loans:'займы',vat:'НДС',ctax:'налог на прибыль'};
+    const val=(n,label)=>{ const raw=f[n]?String(f[n].value).trim():''; const x=parseSum(raw===''?'0':raw); if(isNaN(x)){ bad.push(label); return 0; } return x; };
+    Object.keys(LBL).forEach(n=>O[n]=val(n,LBL[n]));
+    active('suppliers').forEach(s=>O.sup[s.id]=val('sup:'+s.id,s.name));
+    active('employees').forEach(e=>O.pod[e.id]=val('pod:'+e.id,e.name));
+    if(bad.length){ toast('Не число: '+bad.join(', ')+'. Пишите только цифры, например 20000000. Ничего не сохранено'); return; }
+    if(O.cash<0||O.goods<0||O.clients<0||O.fixed<0||O.loans<0){ toast('Касса, товар, клиенты, основные средства и займы не могут быть отрицательными. Ничего не сохранено'); return; }
+    if(Object.keys(O.pod).some(id=>O.pod[id]<0)){ toast('Подотчёт не может быть отрицательным. Ничего не сохранено'); return; }
+    if(O.cash!==old.cash&&lastClosed()){ toast('Касса на начало не меняется после закрытия первого дня: иначе изменятся остатки закрытых дней. Ничего не сохранено'); return; }
+    DB.opening=O; const neg=firstNegative(DB.ops), pneg=DB.employees.map(e=>podFirstNeg(e.id,DB.ops,DB.podc)).find(Boolean); DB.opening=old;
+    if(neg){ toast('С такой кассой на начало остаток уйдёт в минус на конец '+dmy(neg.d)+'. Ничего не сохранено'); return; }
+    if(pneg){ toast('С таким подотчётом на начало у сотрудника будет минус на '+dmy(pneg.d)+'. Ничего не сохранено'); return; }
     const done=ev.submitter&&ev.submitter.value==='done';
     if(done) O.done=true;
-    log(done?'Вводный баланс утверждён':'Вводный баланс сохранён','касса '+fmt(O.cash)+', клиенты '+fmt(O.clients)+', товар '+fmt(O.goods)); save(); render(true); toast(done?'Вводный баланс утверждён':'Черновик сохранён');
+    const ch=Object.keys(LBL).filter(n=>old[n]!==O[n]).map(n=>LBL[n]+' '+fmt(old[n])+' → '+fmt(O[n]))
+      .concat(Object.keys(O.sup).filter(id=>(+old.sup[id]||0)!==O.sup[id]).map(id=>nameOf('suppliers',id)+' '+fmt(+old.sup[id]||0)+' → '+fmt(O.sup[id])))
+      .concat(Object.keys(O.pod).filter(id=>(+old.pod[id]||0)!==O.pod[id]).map(id=>'подотчёт '+nameOf('employees',id)+' '+fmt(+old.pod[id]||0)+' → '+fmt(O.pod[id])));
+    DB.opening=O;
+    log(done?'Вводный баланс утверждён':'Вводный баланс сохранён',ch.length?ch.join('; '):'без изменений сумм'); save(); render(true); toast(done?'Вводный баланс утверждён':'Черновик сохранён');
   }
 });
+window.addEventListener('storage',e=>{ if(e.key===KEY&&e.newValue){ reloadFromStore(); render(true); toast('Данные обновлены из другой вкладки'); } });
+let OTHER_TAB=false;
+try{ const bc=new BroadcastChannel('crafersfin'); bc.onmessage=e=>{ if(e.data==='ping') bc.postMessage('pong'); if(!OTHER_TAB){ OTHER_TAB=true; render(true); } }; bc.postMessage('ping'); }catch(e){}
 window.addEventListener('popstate',()=>{ const k=location.hash.slice(1); if(VIEWS[k]){ S.section=k; render(false); } });
 
 /* для проверки расчётов из консоли */
-window.CF_APP={get DB(){ return DB; },plCalc,balance,cashAt,supBal,podBal,validateOp,firstNegative,parseSum,P,validCopy,guessMap};
+window.CF_APP={get DB(){ return DB; },plCalc,balance,cashAt,supBal,podBal,validateOp,firstNegative,podFirstNeg,parseSum,P,validCopy,guessMap};
 
 const startK=location.hash.slice(1);
 S.section=VIEWS[startK]?startK:(setupMissing().length&&!DB.ops.length?'setup':'cash');
