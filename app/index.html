@@ -763,7 +763,7 @@ function vSales(){
       (p.err?box('bad',p.err):
        '<div class="scroll"><table class="list"><thead><tr><th>День</th><th class="r">Отгружено</th><th class="r">Возвраты</th><th class="r">Строк</th><th class="r">Уже загружено</th></tr></thead><tbody>'+
        p.days.map(d=>'<tr><td class="main">'+dmy(d.date)+(d.date<DB.settings.startDate?' <small style="color:var(--warn)">раньше начала учёта, пропускается</small>':'')+(d.manual&&d.n?' <small style="color:var(--warn)">за этот день есть итог, введённый вручную: удалите его, иначе будет двойной учёт</small>':'')+(d.loaded&&d.n?' <small style="color:var(--warn)">за этот день SalesDoc уже загружен: если это повторная выгрузка того же дня, отмените, удалите день и загрузите заново — иначе задвоится</small>':'')+'</td><td class="r num" data-label="Отгружено">'+fmt(d.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(d.ret)+'</td><td class="r" data-label="Строк">'+d.n+'</td><td class="r" data-label="Уже загружено">'+d.dup+'</td></tr>').join('')+
-       '</tbody></table></div>'+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки — проверьте.</small>':'')+(p.totals?'<small class="muted">Пропущено итоговых строк («Итого», «Всего»): '+p.totals+'.</small>':'')+(p.future?'<small style="color:var(--warn)">Пропущено строк с датой позже сегодняшней: '+p.future+'. Загрузите их в свой день.</small>':''))+
+       '</tbody></table></div>'+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки — проверьте.</small>':'')+(p.totals?'<small style="color:var(--warn)">Пропущено итоговых строк («Итого», «Всего»): '+p.totals+'. Например: '+esc(p.totEx.join(' | '))+'. Если это продажа — сообщите нам.</small>':'')+(p.future?'<small style="color:var(--warn)">Пропущено строк с датой позже сегодняшней: '+p.future+'. Загрузите их в свой день.</small>':''))+
       '<div class="actions" style="justify-content:flex-end"><button class="ghost" data-act="imp-cancel">Отмена</button>'+(p.err?'':p.newRows?'<button class="btn" data-act="imp-ok">Загрузить строк: '+p.newRows+'</button>':'<span class="muted" style="align-self:center">Новых строк нет: этот файл уже загружен</span>')+'</div></div>';
   }
   const rows=list.map(x=>'<tr><td class="main">'+dmy(x.date)+'</td><td class="r num" data-label="Отгружено">'+fmt(x.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(x.ret)+'</td><td class="r num" data-label="Итого"><b>'+fmt(x.sum-x.ret)+'</b></td><td class="r" data-label="Источник"><small class="muted">'+esc(x.src||'')+'</small></td>'+
@@ -784,10 +784,10 @@ function salesPreview(){
   const I=S.imp, m=I.map, start=DB.settings.startDate;
   if(m.date===''||m.sum==='') return {err:'Выберите колонки с датой и суммой.'};
   if(String(m.date)===String(m.sum)) return {err:'Дата и сумма не могут быть одной колонкой.'};
-  const days={}, seen={}, have=new Set(), td=today(); let bad=0, newRows=0, totals=0, future=0;
+  const days={}, seen={}, have=new Set(), td=today(); let bad=0, newRows=0, totals=0, future=0; const totEx=[];
   DB.sales.forEach(x=>(x.keys||[]).forEach(k=>have.add(k)));
   I.rows.forEach(row=>{
-    if(row.some(c=>/итог|всего|total/i.test(String(c==null?'':c)))){ totals++; return; }
+    if(row.some(c=>/^\s*(итого|всего|total)/i.test(String(c==null?'':c)))){ totals++; if(totEx.length<2) totEx.push(row.map(c=>String(c==null?'':c)).filter(Boolean).join(' · ').slice(0,90)); return; }
     const d=cellDate(row[m.date]), s=parseSum(row[m.sum]);
     if(!d||isNaN(s)||s===0){ bad++; return; }
     if(d>td){ future++; return; }
@@ -801,7 +801,7 @@ function salesPreview(){
   });
   const list=Object.values(days).sort((a,b)=>a.date<b.date?-1:1);
   if(!list.length) return {err:'В выбранных колонках не нашлось ни одной строки с датой и суммой.'};
-  return {days:list,bad,newRows,totals,future};
+  return {days:list,bad,newRows,totals,future,totEx};
 }
 function importSales(){
   const p=salesPreview(); if(p.err) return;
@@ -822,7 +822,7 @@ function readSalesFile(file){
   rd.onload=()=>{
     try{
       const bytes=new Uint8Array(rd.result); let wb;
-      if(/\.csv$/i.test(file.name)){ let txt=new TextDecoder('utf-8').decode(bytes); if(txt.indexOf('\uFFFD')>=0) txt=new TextDecoder('windows-1251').decode(bytes); wb=XLSX.read(txt.replace(/^\uFEFF/,''),{type:'string',cellDates:true,raw:false}); }
+      if(/\.csv$/i.test(file.name)){ let txt=new TextDecoder('utf-8').decode(bytes); if(txt.indexOf('\uFFFD')>=0) txt=new TextDecoder('windows-1251').decode(bytes); wb=XLSX.read(txt.replace(/^\uFEFF/,''),{type:'string',raw:true}); }
       else wb=XLSX.read(bytes,{type:'array',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
@@ -866,6 +866,7 @@ function vDesk(){
   const alerts=[];
   if(FH&&!fhOk) alerts.push(['Копия в файл остановлена: нажмите «Разрешить» в разделе «Касса» или «Данные»','Бывает после перезапуска браузера','#C0621F','data']);
   if(!STORE_OK) alerts.push(['Память браузера заполнена','Данные сохраняются только в файл копии','#C0621F','data']);
+  { const nc=firstNegative(DB.ops); if(nc) alerts.unshift(['Касса в минусе на конец '+dmy(nc.d)+': '+fmt(nc.b)+' сум','Такого быть не может: проверьте расходы и пересчёт этого дня','#C0621F','journal']); }
   setupMissing().forEach(x=>alerts.push([x[1],'Настройка','var(--amber)',x[0]]));
   const open=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<t&&!dayClosed(x));
   if(open.length) alerts.push(['Не закрыты дни: '+open.map(dmy).join(', '),'Пересчитайте кассу и закройте','#C0621F','close']);
@@ -1116,7 +1117,9 @@ document.addEventListener('click',ev=>{
     case 'day-open': {
       const why=($('#reopenwhy')||{}).value||''; if(why.trim().length<3){ toast('Укажите причину'); return; }
       if(lastClosed()>S.date){ toast('Открыть можно только последний закрытый день: '+dmy(lastClosed())); return; }
-      const adjId=DB.days[S.date].adjId; if(adjId){ DB.ops=DB.ops.filter(o=>o.id!==adjId); delete DB.days[S.date].adjId; }
+      const adjId=DB.days[S.date].adjId;
+      if(adjId){ const neg=firstNegative(DB.ops.filter(o=>o.id!==adjId)); if(neg){ toast('Нельзя открыть: без излишка этого дня касса уйдёт в минус на конец '+dmy(neg.d)+'. Сначала исправьте расходы'); return; }
+        DB.ops=DB.ops.filter(o=>o.id!==adjId); delete DB.days[S.date].adjId; }
       DB.days[S.date].closed=false; log('День открыт повторно',dmy(S.date)+' · причина: '+why.trim()); save(); toast('День открыт, причина записана'); break; }
     case 'dtab': S.debtTab=v; break;
     case 'jdir': S.jf.dir=v; break;
@@ -1157,8 +1160,11 @@ document.addEventListener('change',ev=>{
   if(el.id==='month'){ S.month=el.value; render(false); return; }
   if(el.id==='emp-group'){ S.empGroup=el.value; return; }
   const gid=el.getAttribute('data-grp');
-  if(gid){ const e=DB.employees.find(x=>x.id===gid), was=e.group; e.group=el.value; log('Группа сотрудника изменена',e.name+': '+(was==='direct'?'агент или доставщик':'офис')+' → '+(el.value==='direct'?'агент или доставщик':'офис')+'. Действует для новых выплат'); save(); render(true); toast('Группа изменена: действует для новых выплат'); return; }
-  if(el.hasAttribute('data-act-date')){ if(el.value){ S.date=el.value; S.delId=null; render(true); } return; }
+  if(gid){ const e=DB.employees.find(x=>x.id===gid), was=e.group; e.group=el.value; let n=0;
+    DB.ops.forEach(o=>{ if(o.party===gid&&A(o.art).kind==='salary'&&!dayClosed(o.date)&&o.date>lastClosed()){ o.grp=el.value; n++; } });
+    log('Группа сотрудника изменена',e.name+': '+(was==='direct'?'агент или доставщик':'офис')+' → '+(el.value==='direct'?'агент или доставщик':'офис')+'. Перенесено выплат в открытых днях: '+n+'; закрытые дни не меняются');
+    save(); render(true); toast('Группа изменена. Выплат в открытых днях перенесено: '+n+'. Закрытые дни не меняются'); return; }
+  if(el.hasAttribute('data-act-date')){ if(el.value){ if(el.value<DB.settings.startDate||el.value>today()){ toast('Дата вне периода учёта: с '+dmy(DB.settings.startDate)+' по сегодня'); el.value=S.date; return; } S.date=el.value; S.delId=null; render(true); } return; }
   if(el.id==='jart'){ S.jf.art=el.value; render(true); return; }
   if(el.id==='salesfile'&&el.files[0]){ readSalesFile(el.files[0]); return; }
   if(el.id==='restorefile'&&el.files[0]){
@@ -1178,9 +1184,12 @@ document.addEventListener('submit',ev=>{
     const cnt=parseSum(f.count.value), why=f.why.value.trim(), d=S.date, calc=cashAt(d);
     if(isNaN(cnt)||cnt<0){ toast('Введите сумму пересчёта'); return; }
     if(d>today()){ toast('Нельзя закрыть будущий день'); return; }
+    if(d<DB.settings.startDate){ toast('День раньше начала учёта '+dmy(DB.settings.startDate)); return; }
+    if(d<=lastClosed()){ toast('Уже закрыт '+dmy(lastClosed())+': закрывать можно только дни после него'); return; }
     const earlier=[...new Set(DB.ops.map(o=>o.date))].filter(x=>x<d&&!dayClosed(x)).sort();
     if(earlier.length){ toast('Сначала закройте '+dmy(earlier[0])+': дни закрываются по порядку'); return; }
     const diff=cnt-calc; if(diff&&why.length<3){ toast('Есть расхождение '+fmt(diff)+' сум: укажите причину'); return; }
+    if(diff<0){ const neg=firstNegative(DB.ops.concat([{date:d,dir:'out',sum:-diff}])); if(neg){ toast('С недостачей '+fmt(-diff)+' касса уйдёт в минус на конец '+dmy(neg.d)+': '+fmt(neg.b)+'. Проверьте пересчёт и расходы после '+dmy(d)+'. День не закрыт'); return; } }
     DB.days[d]={closed:true,at:new Date().toISOString(),calc,count:cnt,diff,why};
     if(diff){ const adj={id:uid(),date:d,dir:diff<0?'out':'in',art:diff<0?'out_short':'in_surplus',party:'',sum:Math.abs(diff),note:'Пересчёт при закрытии дня'+(why?': '+why:''),created:new Date().toISOString(),sys:true}; DB.ops.push(adj); DB.days[d].adjId=adj.id;
       log(diff<0?'Недостача кассы':'Излишек кассы',dmy(d)+' · '+fmt(Math.abs(diff))+' · '+why); }
@@ -1229,7 +1238,7 @@ document.addEventListener('submit',ev=>{
     log(done?'Вводный баланс утверждён':'Вводный баланс сохранён',ch.length?ch.join('; '):'без изменений сумм'); save(); render(true); toast(done?'Вводный баланс утверждён':'Черновик сохранён');
   }
 });
-window.addEventListener('storage',e=>{ if(e.key===KEY&&e.newValue){ reloadFromStore(); render(true); toast('Данные обновлены из другой вкладки'); } });
+window.addEventListener('storage',e=>{ if(e.key===KEY&&e.newValue){ reloadFromStore(); if(S.section==='opening'||S.section==='setup') toast('Данные изменились в другой вкладке. Работайте в одной вкладке'); else { render(true); toast('Данные обновлены из другой вкладки'); } } });
 let OTHER_TAB=false;
 try{ const bc=new BroadcastChannel('crafersfin'); bc.onmessage=e=>{ if(e.data==='ping') bc.postMessage('pong'); if(!OTHER_TAB){ OTHER_TAB=true; render(true); } }; bc.postMessage('ping'); }catch(e){}
 window.addEventListener('popstate',()=>{ const k=location.hash.slice(1); if(VIEWS[k]){ S.section=k; render(false); } });
