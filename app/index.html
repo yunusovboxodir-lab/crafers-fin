@@ -380,7 +380,7 @@ function parseSum(v){
   if(typeof v==='number') return isFinite(v)?Math.round(v):NaN;
   let s=String(v==null?'':v).replace(/сум|so['‘’]?m|uzs/gi,'').replace(/[\s\u00A0\u202F']/g,'');
   let neg=false; const pm=s.match(/^\((.*)\)$/); if(pm){ neg=true; s=pm[1]; }
-  if(s[0]==='-'||s[0]==='−'){ neg=!neg; s=s.slice(1); }
+  if(s[0]==='-'||s[0]==='−'){ neg=true; s=s.slice(1); }
   if(s.indexOf('.')>=0&&s.indexOf(',')>=0){ const dec=s.lastIndexOf('.')>s.lastIndexOf(',')?'.':','; s=s.split(dec==='.'?',':'.').join('').replace(',','.'); }
   else if(/^\d{1,3}([.,]\d{3})+$/.test(s)) s=s.replace(/[.,]/g,'');
   else s=s.replace(',','.');
@@ -744,8 +744,13 @@ function submitPodc(){
 function cellDate(v){
   if(v instanceof Date&&!isNaN(v)){ const d=new Date(v.getTime()-v.getTimezoneOffset()*60000); return d.toISOString().slice(0,10); }
   if(typeof v==='number'&&v>30000&&v<80000){ const d=new Date(Math.round((v-25569)*864e5)); return d.toISOString().slice(0,10); }
-  const s=String(v==null?'':v).trim(); let m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/); if(m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
-  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  const s=String(v==null?'':v).trim().toLowerCase();
+  const ok=(y,mo,d)=>{ y=+y; mo=+mo; d=+d; if(y<100) y+=2000; if(mo<1||mo>12||d<1||d>31) return null; const dt=new Date(Date.UTC(y,mo-1,d)); if(dt.getUTCMonth()!==mo-1) return null; return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0'); };
+  let m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4}|\d{2})(?!\d)/); if(m) return ok(m[3],m[2],m[1]);
+  m=s.match(/^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})(?!\d)/); if(m) return ok(m[1],m[2],m[3]);
+  const MON=['янв','фев','мар','апр','ма','июн','июл','авг','сен','окт','ноя','дек'];
+  m=s.match(/^(\d{1,2})\s+([а-яё]+)\.?\s+(\d{4})/); if(m){ const i=MON.findIndex((x,k)=>k===4?/^ма[йя]/.test(m[2]):m[2].indexOf(x)===0); if(i>=0) return ok(m[3],i+1,m[1]); }
+  if(/^\d{5}(\.\d+)?$/.test(s)){ const n=+s; if(n>30000&&n<80000){ const d=new Date(Math.round((Math.floor(n)-25569)*864e5)); return d.toISOString().slice(0,10); } }
   return null;
 }
 function vSales(){
@@ -766,7 +771,7 @@ function vSales(){
       (p.err?box('bad',p.err):
        '<div class="scroll"><table class="list"><thead><tr><th>День</th><th class="r">Отгружено</th><th class="r">Возвраты</th><th class="r">Строк</th><th class="r">Уже загружено</th></tr></thead><tbody>'+
        p.days.map(d=>'<tr><td class="main">'+dmy(d.date)+(d.date<DB.settings.startDate?' <small style="color:var(--warn)">раньше начала учёта, пропускается</small>':'')+(d.manual&&d.n?' <small style="color:var(--warn)">за этот день есть итог, введённый вручную: удалите его, иначе будет двойной учёт</small>':'')+(d.loaded&&d.n?' <small style="color:var(--warn)">за этот день SalesDoc уже загружен: если это повторная выгрузка того же дня, отмените, удалите день и загрузите заново — иначе задвоится</small>':'')+'</td><td class="r num" data-label="Отгружено">'+fmt(d.sum)+'</td><td class="r num" data-label="Возвраты">'+fmt(d.ret)+'</td><td class="r" data-label="Строк">'+d.n+'</td><td class="r" data-label="Уже загружено">'+d.dup+'</td></tr>').join('')+
-       '</tbody></table></div>'+(p.badData?box('bad','<b>Не загрузятся строки с датой, но непонятной суммой: '+p.badData+'</b><span>Например: '+esc(p.badEx.join('; '))+'. Проверьте колонку суммы или формат файла.</span>'):'')+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки — проверьте.</small>':'')+(p.totals?'<small style="color:var(--warn)">Пропущено строк-итогов: '+p.totals+'. Например: '+esc(p.totEx.join(' | '))+'.</small>':'')+
+       '</tbody></table></div>'+(p.badDate?box('bad','<b>Не загрузятся строки с суммой, но с непонятной датой или без даты: '+p.badDate+'</b><span>Например: '+esc(p.badDateEx.join('; '))+'. Проверьте колонку даты. Если это продажи — сообщите нам, выручка за них не попадёт в отчёты.</span>'):'')+(p.badData?box('bad','<b>Не загрузятся строки с датой, но непонятной суммой: '+p.badData+'</b><span>Например: '+esc(p.badEx.join('; '))+'. Проверьте колонку суммы или формат файла.</span>'):'')+(p.bad?'<small style="color:var(--warn)">Пропущено строк без даты или суммы: '+p.bad+'. Это могут быть заголовки — проверьте.</small>':'')+(p.totals?'<small style="color:var(--warn)">Пропущено строк-итогов: '+p.totals+'. Например: '+esc(p.totEx.join(' | '))+'.</small>':'')+
        '<label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" data-skiptot'+(S.imp.skipTotals!==false?' checked':'')+'> Пропускать строки-итоги («28.09.2026 Итог», «Общий итог», «Итого»). Снимите, только если в файле нет итогов</label>'+(p.future?'<small style="color:var(--warn)">Пропущено строк с датой позже сегодняшней: '+p.future+'. Загрузите их в свой день.</small>':''))+
       '<div class="actions" style="justify-content:flex-end"><button class="ghost" data-act="imp-cancel">Отмена</button>'+(p.err?'':p.newRows?'<button class="btn" data-act="imp-ok">Загрузить строк: '+p.newRows+'</button>':'<span class="muted" style="align-self:center">Новых строк нет: этот файл уже загружен</span>')+'</div></div>';
   }
@@ -791,12 +796,13 @@ function salesPreview(){
   const I=S.imp, m=I.map, start=DB.settings.startDate;
   if(m.date===''||m.sum==='') return {err:'Выберите колонки с датой и суммой.'};
   if(String(m.date)===String(m.sum)) return {err:'Дата и сумма не могут быть одной колонкой.'};
-  const days={}, seen={}, have=new Set(), td=today(); let bad=0, newRows=0, totals=0, future=0, badData=0; const totEx=[], badEx=[];
+  const days={}, seen={}, have=new Set(), td=today(); let bad=0, newRows=0, totals=0, future=0, badData=0, badDate=0; const totEx=[], badEx=[], badDateEx=[];
   DB.sales.forEach(x=>(x.keys||[]).forEach(k=>have.add(k)));
   I.rows.forEach(row=>{
     if(I.skipTotals!==false&&(TOT_WORD.test(String(row[m.date]==null?'':row[m.date]))||row.some(c=>TOT_EXACT.test(String(c==null?'':c))))){ totals++; if(totEx.length<2) totEx.push(row.map(c=>String(c==null?'':c)).filter(Boolean).join(' · ').slice(0,90)); return; }
     const d=cellDate(row[m.date]), s=parseSum(row[m.sum]);
     if(d&&isNaN(s)&&String(row[m.sum]==null?'':row[m.sum]).trim()!==''){ badData++; if(badEx.length<3) badEx.push(dmy(d)+': «'+String(row[m.sum]).slice(0,30)+'»'); return; }
+    if(!d&&!isNaN(s)&&s!==0){ const dc=String(row[m.date]==null?'':row[m.date]).trim(); badDate++; if(badDateEx.length<3) badDateEx.push((dc?'«'+dc.slice(0,25)+'»':'без даты')+': '+fmt(s)); return; }
     if(!d||isNaN(s)||s===0){ bad++; return; }
     if(d>td){ future++; return; }
     const isRet=s<0||(m.type!==''&&/возврат/i.test(String(row[m.type]||'')));
@@ -808,8 +814,8 @@ function salesPreview(){
     D.n++; if(isRet) D.ret+=Math.abs(s); else D.sum+=s; D.keys.push(key); if(d>=start) newRows++;
   });
   const list=Object.values(days).sort((a,b)=>a.date<b.date?-1:1);
-  if(!list.length) return {err:'В выбранных колонках не нашлось ни одной строки с датой и суммой.'+(badData?' Строк с датой, но непонятной суммой: '+badData+'. Например: '+esc(badEx.join('; ')):'')};
-  return {days:list,bad,newRows,totals,future,totEx,badData,badEx};
+  if(!list.length) return {err:'В выбранных колонках не нашлось ни одной строки с датой и суммой.'+(badDate?' Строк с суммой, но с непонятной датой: '+badDate+'. Например: '+esc(badDateEx.join('; '))+'.':'')+(badData?' Строк с датой, но непонятной суммой: '+badData+'. Например: '+esc(badEx.join('; ')):'')};
+  return {days:list,bad,newRows,totals,future,totEx,badData,badEx,badDate,badDateEx};
 }
 function importSales(){
   const p=salesPreview(); if(p.err) return;
